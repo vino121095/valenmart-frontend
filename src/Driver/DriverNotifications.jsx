@@ -18,7 +18,8 @@ import {
   CheckCircle as CheckCircleIcon,
   LocalShipping as ShippingIcon,
   Payment as PaymentIcon,
-  Assignment as AssignmentIcon
+  Assignment as AssignmentIcon,
+  ArrowBackIosNew as ArrowBackIosNewIcon
 } from '@mui/icons-material';
 import Header from '../Header';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -47,7 +48,7 @@ const DriverNotifications = () => {
           setLoading(false);
           return;
         }
-        const response = await fetch(`${baseurl}/api/notification/all/${driverId}`, {
+        const response = await fetch(`${baseurl}/api/driver-notification/all/${driverId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -112,7 +113,7 @@ const DriverNotifications = () => {
       const authToken = localStorage.getItem('token');
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const driverId = userData.id || userData.did || localStorage.getItem('driver_id');
-      await fetch(`${baseurl}/api/notification/mark-read/${driverId}`, {
+      await fetch(`${baseurl}/api/driver-notification/mark-read/${driverId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -173,6 +174,9 @@ const DriverNotifications = () => {
     <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item display="flex" alignItems="center" gap={2}>
+            <IconButton color="inherit" onClick={() => navigate(-1)}>
+              <ArrowBackIosNewIcon />
+            </IconButton>
             <Avatar sx={{ bgcolor: '#fff', color: '#2bb673' }}>
               {driverInfo.initials}
             </Avatar>

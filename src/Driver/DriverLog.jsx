@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AppBar, Box, Button, Card, CardContent, Container, Grid, IconButton, Typography, Tabs, Tab, Avatar, Chip, CircularProgress, Alert } from '@mui/material';
 import { ArrowBack, FilterList, LocalShipping, ShoppingCart } from '@mui/icons-material';
 import { Notifications, Dashboard, Assignment, Person, ListAlt } from '@mui/icons-material';
@@ -8,6 +8,7 @@ import baseurl from '../baseurl/ApiService';
 
 export default function DriverLog() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const pathToValue = {
     '/DriverDash': 0,
@@ -175,7 +176,7 @@ export default function DriverLog() {
       <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
         <Grid container justifyContent="space-between" alignItems="center">
           <Grid item display="flex" alignItems="center">
-            <IconButton color="inherit">
+            <IconButton color="inherit" onClick={() => navigate(-1)}>
               <ArrowBack />
             </IconButton>
             <Typography variant="h6" ml={1}>Activity Logs</Typography>
@@ -245,6 +246,11 @@ export default function DriverLog() {
                           <Typography variant="subtitle1">Order {pickup.oid}</Typography>
                           <Typography variant="body2" color="text.secondary">{pickup.address}</Typography>
                           <Typography variant="caption">Completed at {pickup.time}</Typography>
+                          {pickup.charge > 0 && (
+                            <Typography variant="body2" color="primary">
+                              Delivery Charge: ₹{pickup.charge}
+                            </Typography>
+                          )}
                         </Box>
                         <Chip label={pickup.status} size="small" color="success" />
                       </CardContent>

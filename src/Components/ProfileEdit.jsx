@@ -66,7 +66,7 @@ const ProfileEdit = () => {
             state: data.state || '',
             postal_code: data.postal_code || '',
             // Add mapping for profile_image if needed, assuming API provides a URL
-            profileImageUrl: data.profile_image ? `${baseurl}/${data.profile_image}` : '', // Use baseurl and profile_image path
+            profileImageUrl: data.User && data.User.profile_image ? `${baseurl}/uploads/profile_images/${data.User.profile_image}` : '', // Use baseurl and profile_image path
           }));
         } else {
             console.error('Fetched data is not in the expected format or data property is missing:', responseData);

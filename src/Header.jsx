@@ -87,14 +87,14 @@ function Header({
 
         // Also check for profile image URL
         const possibleProfileImage = 
-          data?.data?.profile_image ||
-          data?.profile_image; // Check directly if not nested
+          data?.data?.User?.profile_image ||
+          data?.data?.profile_image; // Check directly if not nested
 
         console.log('Found profile image path:', possibleProfileImage);
 
         if (possibleProfileImage) {
           // Assuming API returns a path like 'uploads/images/image.jpg'
-          setHeaderProfileImageUrl(`${baseurl}/${possibleProfileImage}`);
+          setHeaderProfileImageUrl(`${baseurl}/uploads/profile_images/${possibleProfileImage}`);
         } else {
           setHeaderProfileImageUrl(''); // Clear image if none found
           console.log('No profile image found in API response');

@@ -189,7 +189,8 @@ const OrderCard = ({ order, onPriceUpdated, editable, productMap, showActionButt
         },
         body: JSON.stringify({ 
           items: JSON.stringify(updatedProducts),
-          price: totalPrice.toFixed(2)
+          price: totalPrice.toFixed(2),
+          negotiationtype: 'vendor'
         })
       });
       
@@ -258,7 +259,8 @@ const OrderCard = ({ order, onPriceUpdated, editable, productMap, showActionButt
         },
         body: JSON.stringify({ 
           items: JSON.stringify(updatedProducts),
-          price: totalPrice.toFixed(2)
+          price: totalPrice.toFixed(2),
+          negotiationtype: 'vendor'
         })
       });
       

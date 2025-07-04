@@ -79,7 +79,7 @@ const Profile = () => {
           const data = responseData.data;
           setProfileDetails({
             ...data,
-            profileImageUrl: data.profile_image ? `${baseurl}/${data.profile_image}` : '',
+            profileImageUrl: data.User.profile_image ? `${baseurl}/uploads/profile_images/${data.User.profile_image}` : '',
             // Assuming contact_person_name and contact_person_email are available directly in data.data
           });
         } else {
@@ -212,7 +212,7 @@ const Profile = () => {
         ) : profileDetails ? (
           <>
             <Avatar sx={{ bgcolor: '#a8dfc1', width: 80, height: 80, fontSize: 40 }} src={profileDetails.profileImageUrl || ''}>
-              {profileDetails.institution_name ? profileDetails.institution_name.charAt(0).toUpperCase() : 'S'}
+              {/* {profileDetails.institution_name ? profileDetails.institution_name.charAt(0).toUpperCase() : 'S'} */}
             </Avatar>
             <Typography variant="h6" mt={2}>
               {profileDetails.institution_name || 'SRM University'}

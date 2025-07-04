@@ -93,7 +93,7 @@ export default function DriverAccount() {
     <Box sx={{ bgcolor: '#f5f7fa', minHeight: '100vh', pb: 7 }}>
       <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
         <Grid container alignItems="center">
-          <IconButton color="inherit">
+          <IconButton color="inherit" onClick={() => navigate(-1)}>
             <ArrowBack />
           </IconButton>
           <Typography variant="h6" ml={1}>Account Settings</Typography>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppBar, Box, Button, Card, CardContent, Container, Grid, IconButton, Step, StepLabel, Stepper, Typography, Avatar, Chip } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const orderDetails = {
   orderId: '#9283',
@@ -20,11 +21,12 @@ const orderDetails = {
 const steps = ['Accepted', 'Out for Pickup', 'Picked', 'Delivered'];
 
 export default function DriverOrder() {
+  const navigate = useNavigate();
   return (
     <Box sx={{ bgcolor: '#f5f7fa', minHeight: '100vh', pb: 7 }}>
       <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
         <Grid container alignItems="center">
-          <IconButton color="inherit">
+          <IconButton color="inherit" onClick={() => navigate(-1)}>
             <ArrowBack />
           </IconButton>
           <Typography variant="h6" ml={1}>Order Details</Typography>

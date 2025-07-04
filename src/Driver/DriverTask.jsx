@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Container, Typography, TextField, Button, Grid, Card, CardContent, IconButton, Tab, Tabs, Badge, CircularProgress, Alert, Modal } from '@mui/material';
 import { ArrowBack, FilterList } from '@mui/icons-material';
 import { Notifications, Dashboard, Assignment, Person, ListAlt } from '@mui/icons-material';
@@ -8,6 +8,7 @@ import baseurl from '../baseurl/ApiService';
 
 export default function DriverTask() {
   const location = useLocation();
+  const navigate = useNavigate();
   
   const pathToValue = {
     '/DriverDash': 0,
@@ -424,7 +425,7 @@ export default function DriverTask() {
       </Modal>
       <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
         <Grid container alignItems="center" justifyContent="space-between">
-          <IconButton color="inherit">
+          <IconButton color="inherit" onClick={() => navigate(-1)}>
             <ArrowBack />
           </IconButton>
           <Typography variant="h6" ml={1}>Task Management</Typography>
