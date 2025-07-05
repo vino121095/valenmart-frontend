@@ -12,7 +12,8 @@ import {
   CardContent,
   Avatar,
   Grid,
-  Alert
+  Alert,
+  Badge
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -21,6 +22,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import VendorFooter from '../vendorfooter';
 import baseurl from '../baseurl/ApiService';
+import { Notifications } from '@mui/icons-material';
 
 const AddProduct = () => {
   const [productData, setProductData] = useState({
@@ -46,6 +48,7 @@ const AddProduct = () => {
   const navigate = useNavigate();
   const [allProducts, setAllProducts] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
     const stored = localStorage.getItem('productList');
@@ -115,6 +118,36 @@ const AddProduct = () => {
     }
     // eslint-disable-next-line
   }, [editIndex, allProducts]);
+
+  // Fetch notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const authToken = localStorage.getItem('token');
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const vendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
+        if (!vendorId) return;
+        const response = await fetch(`${baseurl}/api/vendor-notification/all/${vendorId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data && data.notifications) {
+          const unreadCount = data.notifications.filter(n => !n.is_read).length;
+          setNotificationCount(unreadCount);
+        }
+      } catch (e) {}
+    };
+    fetchNotifications();
+  }, []);
+
+  const handleNotificationClick = () => {
+    navigate('/vendor-notifications');
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -408,14 +441,24 @@ const AddProduct = () => {
   return (
     <>
       <Box bgcolor="#F4F4F6" minHeight="100vh" pb={12}>
-        <Box bgcolor="#00A86B" color="white" px={2} py={2} display="flex" alignItems="center">
-          <IconButton
-            onClick={handleBack}
-            sx={{ backgroundColor: '#FFFFFF4D', color: 'white', borderRadius: '50%', p: 1, mr: 1 }}
-          >
-            <ArrowBackIcon sx={{ fontSize: 28 }} />
-          </IconButton>
-          <Typography variant="h6" fontWeight="bold">Add Product</Typography>
+        <Box bgcolor="#00A86B" color="white" px={2} py={2} display="flex" alignItems="center" justifyContent="space-between">
+          <Box display="flex" alignItems="center">
+            <IconButton
+              onClick={handleBack}
+              sx={{ backgroundColor: '#FFFFFF4D', color: 'white', borderRadius: '50%', p: 1, mr: 1 }}
+            >
+              <ArrowBackIcon sx={{ fontSize: 28 }} />
+            </IconButton>
+            <Typography variant="h6" fontWeight="bold">Add Product</Typography>
+          </Box>
+          <Badge badgeContent={notificationCount} color="error">
+            <IconButton 
+              onClick={handleNotificationClick}
+              sx={{ color: 'white' }}
+            >
+              <Notifications />
+            </IconButton>
+          </Badge>
         </Box>
 
         <Container maxWidth="sm" sx={{ mt: 4 }}>

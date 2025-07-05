@@ -15,7 +15,9 @@ import {
   Alert,
   Tabs,
   Tab,
-  Grid
+  Grid,
+  Badge,
+  Pagination
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -23,6 +25,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import baseurl from '../baseurl/ApiService';
 import { useNavigate } from 'react-router-dom';
 import VendorFooter from '../vendorfooter';
@@ -540,17 +543,60 @@ const ProcurementOrder = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [productMap, setProductMap] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const navigate = useNavigate();
 
   const handleBack = () => {
     navigate(-1);
   };
 
+  const handleNotificationClick = () => {
+    navigate('/vendor-notifications');
+  };
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  // Fetch notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const authToken = localStorage.getItem('token');
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const vendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
+        if (!vendorId) return;
+        const response = await fetch(`${baseurl}/api/vendor-notification/all/${vendorId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data && data.notifications) {
+          const unreadCount = data.notifications.filter(n => !n.is_read).length;
+          setNotificationCount(unreadCount);
+        }
+      } catch (e) {}
+    };
+    fetchNotifications();
+  }, []);
+
   const fetchOrders = () => {
     fetch(`${baseurl}/api/procurement/all`)
       .then((res) => res.json())
       .then((data) => {
-        setOrders(data.data || []);
+        // Sort by newest first (by order_date or procurement_id)
+        const sortedOrders = (data.data || []).sort((a, b) => {
+          const dateA = new Date(a.order_date || a.created_at || 0);
+          const dateB = new Date(b.order_date || b.created_at || 0);
+          return dateB - dateA; // Newest first
+        });
+        setOrders(sortedOrders);
       })
       .catch((err) => console.error('Failed to fetch procurement orders:', err));
   };
@@ -574,16 +620,61 @@ const ProcurementOrder = () => {
     fetchOrders();
   }, []);
 
-  // Filter orders based on search term
+  // Enhanced search filter
   const filteredOrders = orders.filter(order => {
     if (!searchTerm) return true;
     const searchLower = searchTerm.toLowerCase();
-    return (
-      order.procurement_id?.toString().includes(searchLower) ||
-      order.vendor_name?.toLowerCase().includes(searchLower) ||
-      order.order_date?.toLowerCase().includes(searchLower)
-    );
+    
+    // Search by order ID
+    if (order.procurement_id?.toString().includes(searchLower)) return true;
+    
+    // Search by vendor name
+    if (order.vendor_name?.toLowerCase().includes(searchLower)) return true;
+    
+    // Search by date
+    if (order.order_date?.toLowerCase().includes(searchLower)) return true;
+    
+    // Search by product names in items
+    try {
+      const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+      if (Array.isArray(items)) {
+        return items.some(item => {
+          const productName = productMap[item.product_id] || item.product_name || '';
+          return productName.toLowerCase().includes(searchLower);
+        });
+      }
+    } catch (e) {
+      // If items is not valid JSON, try searching in the raw string
+      if (order.items?.toLowerCase().includes(searchLower)) return true;
+    }
+    
+    return false;
   });
+
+  // Get current orders for pagination
+  const getCurrentOrders = () => {
+    const adminOrders = filteredOrders.filter(order => order.type === 'admin');
+    const yourOrders = filteredOrders.filter(order => order.type === 'vendor' || order.type === 'farmer');
+    
+    const currentOrders = tabIndex === 0 ? adminOrders : yourOrders;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    
+    return currentOrders.slice(startIndex, endIndex);
+  };
+
+  // Calculate total pages
+  const getTotalPages = () => {
+    const adminOrders = filteredOrders.filter(order => order.type === 'admin');
+    const yourOrders = filteredOrders.filter(order => order.type === 'vendor' || order.type === 'farmer');
+    const currentOrders = tabIndex === 0 ? adminOrders : yourOrders;
+    return Math.ceil(currentOrders.length / itemsPerPage);
+  };
+
+  // Reset to first page when tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [tabIndex, searchTerm]);
 
   return (
     <Box sx={{ bgcolor: '#F4F4F6', minHeight: '100vh', pb: 10 }}>
@@ -616,9 +707,19 @@ const ProcurementOrder = () => {
             Procurement Orders
           </Typography>
         </Box>
-        <IconButton sx={{ color: 'white' }}>
-          <FilterListIcon />
-        </IconButton>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Badge badgeContent={notificationCount} color="error">
+            <IconButton 
+              onClick={handleNotificationClick}
+              sx={{ color: 'white' }}
+            >
+              <NotificationsIcon />
+            </IconButton>
+          </Badge>
+          <IconButton sx={{ color: 'white' }}>
+            <FilterListIcon />
+          </IconButton>
+        </Box>
       </Box>
 
       {/* Search Bar */}
@@ -637,7 +738,7 @@ const ProcurementOrder = () => {
           <SearchIcon sx={{ color: '#999' }} />
           <TextField
             fullWidth
-            placeholder="Search Orders..."
+            placeholder="Search by Order ID, Product Name, Date, or Vendor..."
             variant="standard"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -661,41 +762,41 @@ const ProcurementOrder = () => {
 
         {/* Orders List by Tab */}
         {(() => {
-          const adminOrders = filteredOrders.filter(order => order.type === 'admin');
-          const yourOrders = filteredOrders.filter(order => order.type === 'vendor' || order.type === 'farmer');
+          const currentOrders = getCurrentOrders();
+          const totalPages = getTotalPages();
           
-          if (tabIndex === 0) {
-            return adminOrders.length > 0 ? (
-              adminOrders.map((order) => (
-                <OrderCard 
-                  key={order.procurement_id} 
-                  order={order} 
-                  onPriceUpdated={fetchOrders} 
-                  editable={true} 
-                  productMap={productMap} 
-                  showActionButtons={true}
-                />
-              ))
-            ) : (
-              <Typography color="text.secondary" align="center" sx={{ mt: 2 }}>
-                No admin orders found.
-              </Typography>
+          if (currentOrders.length > 0) {
+            return (
+              <>
+                {currentOrders.map((order) => (
+                  <OrderCard 
+                    key={order.procurement_id} 
+                    order={order} 
+                    onPriceUpdated={fetchOrders} 
+                    editable={true} 
+                    productMap={productMap} 
+                    showActionButtons={tabIndex === 0}
+                  />
+                ))}
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Pagination 
+                      count={totalPages} 
+                      page={currentPage} 
+                      onChange={handlePageChange}
+                      color="primary"
+                      size="large"
+                    />
+                  </Box>
+                )}
+              </>
             );
-          } else if (tabIndex === 1) {
-            return yourOrders.length > 0 ? (
-              yourOrders.map((order) => (
-                <OrderCard 
-                  key={order.procurement_id} 
-                  order={order} 
-                  onPriceUpdated={fetchOrders} 
-                  editable={true} 
-                  productMap={productMap} 
-                  showActionButtons={false}
-                />
-              ))
-            ) : (
+          } else {
+            return (
               <Typography color="text.secondary" align="center" sx={{ mt: 2 }}>
-                No orders found.
+                {tabIndex === 0 ? 'No admin orders found.' : 'No orders found.'}
               </Typography>
             );
           }

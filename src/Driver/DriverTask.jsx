@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Container, Typography, TextField, Button, Grid, Card, CardContent, IconButton, Tab, Tabs, Badge, CircularProgress, Alert, Modal } from '@mui/material';
-import { ArrowBack, FilterList } from '@mui/icons-material';
-import { Notifications, Dashboard, Assignment, Person, ListAlt } from '@mui/icons-material';
+import { Box, Container, Typography, TextField, Button, Grid, Card, CardContent, IconButton, Tab, Tabs, Badge, CircularProgress, Alert, Modal, Divider, Chip } from '@mui/material';
+import { ArrowBack, FilterList, Phone, LocationOn, Person, ShoppingCart, Close } from '@mui/icons-material';
+import { Notifications, Dashboard, Assignment, Person as PersonIcon, ListAlt } from '@mui/icons-material';
 import DriverFooter from '../driverfooter';
 import baseurl from '../baseurl/ApiService';
 
@@ -36,6 +36,11 @@ export default function DriverTask() {
   const [selectedPickup, setSelectedPickup] = useState(null);
   const [pickupImage, setPickupImage] = useState(null);
   const [pickupUploading, setPickupUploading] = useState(false);
+
+  // Detail view modals
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [itemType, setItemType] = useState(''); // 'pickup' or 'delivery'
 
   // Fetch and classify orders
   const fetchOrders = async () => {
@@ -119,6 +124,16 @@ export default function DriverTask() {
         address: `${order.vendor_address || order.address || 'Address not available'}, ${order.vendor_city || order.city || ''}`,
         time: order.pickup_time || order.expected_delivery_date || order.order_date || 'Time not set',
         status: order.status || 'Approved',
+        // Add detailed information
+        vendor_name: order.vendor_name || order.vendor?.name || 'Unknown Vendor',
+        vendor_address: order.vendor_address || order.address || 'Address not available',
+        vendor_city: order.vendor_city || order.city || '',
+        vendor_phone: order.vendor_phone || order.contact_phone || 'Not provided',
+        items: order.items || [],
+        notes: order.notes || '',
+        order_date: order.order_date || '',
+        expected_delivery_date: order.expected_delivery_date || '',
+        total_amount: order.price || order.total_amount || 0,
       }));
 
       // Transform regular pickups
@@ -130,6 +145,17 @@ export default function DriverTask() {
         address: `${order.address || 'Address not available'}, ${order.city || ''}`,
         time: order.time || order.delivery_time || 'Time not set',
         status: order.status || 'pending',
+        // Add detailed information
+        customer_name: order.CustomerProfile?.contact_person_name || order.customer_name || 'Unknown Customer',
+        customer_address: order.address || 'Address not available',
+        customer_city: order.city || '',
+        customer_phone: order.CustomerProfile?.contact_person_phone || order.contact_phone || 'Not provided',
+        customer_email: order.CustomerProfile?.contact_person_email || order.email || 'Not provided',
+        items: order.items || [],
+        notes: order.notes || '',
+        order_date: order.order_date || '',
+        delivery_time: order.delivery_time || '',
+        total_amount: order.total_amount || 0,
       }));
 
       // Transform regular deliveries
@@ -140,6 +166,17 @@ export default function DriverTask() {
         address: `${order.address || 'Address not available'}, ${order.city || ''}`,
         time: order.time || order.delivery_time || 'Time not set',
         status: order.status || 'pending',
+        // Add detailed information
+        customer_name: order.CustomerProfile?.contact_person_name || order.customer_name || 'Unknown Customer',
+        customer_address: order.address || 'Address not available',
+        customer_city: order.city || '',
+        customer_phone: order.CustomerProfile?.contact_person_phone || order.contact_phone || 'Not provided',
+        customer_email: order.CustomerProfile?.contact_person_email || order.email || 'Not provided',
+        items: order.items || [],
+        notes: order.notes || '',
+        order_date: order.order_date || '',
+        delivery_time: order.delivery_time || '',
+        total_amount: order.total_amount || 0,
       }));
 
       // Combine pickups (regular + procurement)
@@ -158,6 +195,33 @@ export default function DriverTask() {
     fetchOrders();
     // eslint-disable-next-line
   }, []);
+
+  // Detail modal handlers
+  const handleOpenDetailModal = (item, type) => {
+    setSelectedItem(item);
+    setItemType(type);
+    setDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setDetailModalOpen(false);
+    setSelectedItem(null);
+    setItemType('');
+  };
+
+  // Parse items for display
+  const parseItems = (items) => {
+    if (!items) return [];
+    if (typeof items === 'string') {
+      try {
+        const parsed = JSON.parse(items);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        return [{ product_name: items }];
+      }
+    }
+    return Array.isArray(items) ? items : [items];
+  };
 
   // Modal handlers
   const handleOpenModal = (delivery) => {
@@ -316,6 +380,160 @@ export default function DriverTask() {
 
   return (
     <Box sx={{ bgcolor: '#f5f7fa', minHeight: '100vh', pb: 7 }}>
+      {/* Detail View Modal */}
+      <Modal open={detailModalOpen} onClose={handleCloseDetailModal}>
+        <Box sx={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          bgcolor: 'background.paper', boxShadow: 24, p: 4, borderRadius: 2, minWidth: 400, maxWidth: 600, maxHeight: '80vh', overflow: 'auto'
+        }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography variant="h6" fontWeight="bold">
+              {itemType === 'pickup' ? 'Pickup Details' : 'Delivery Details'}
+            </Typography>
+            <IconButton onClick={handleCloseDetailModal}>
+              <Close />
+            </IconButton>
+          </Box>
+          
+          {selectedItem && (
+            <>
+              <Box mb={3}>
+                <Chip 
+                  label={`${itemType === 'pickup' ? 'Pickup' : 'Delivery'} #${selectedItem.oid}`}
+                  color="primary"
+                  sx={{ mb: 2 }}
+                />
+                <Chip 
+                  label={selectedItem.status}
+                  color={selectedItem.status === 'Completed' || selectedItem.status === 'Delivered' ? 'success' : 'warning'}
+                  sx={{ ml: 1 }}
+                />
+              </Box>
+
+              <Grid container spacing={3}>
+                {/* Contact Information */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" fontWeight="bold" mb={1} display="flex" alignItems="center">
+                    <Person sx={{ mr: 1 }} />
+                    {itemType === 'pickup' && selectedItem.procurement ? 'Vendor Information' : 'Customer Information'}
+                  </Typography>
+                  <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
+                    <Typography variant="body1" fontWeight="bold">
+                      {itemType === 'pickup' && selectedItem.procurement 
+                        ? selectedItem.vendor_name 
+                        : selectedItem.customer_name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" display="flex" alignItems="center" mt={1}>
+                      <Phone sx={{ mr: 1, fontSize: 16 }} />
+                      {itemType === 'pickup' && selectedItem.procurement 
+                        ? selectedItem.vendor_phone 
+                        : selectedItem.customer_phone}
+                    </Typography>
+                    {itemType === 'pickup' && selectedItem.procurement ? null : (
+                      <Typography variant="body2" color="text.secondary" mt={0.5}>
+                        {selectedItem.customer_email}
+                      </Typography>
+                    )}
+                  </Box>
+                </Grid>
+
+                {/* Address Information */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" fontWeight="bold" mb={1} display="flex" alignItems="center">
+                    <LocationOn sx={{ mr: 1 }} />
+                    Address
+                  </Typography>
+                  <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
+                    <Typography variant="body2">
+                      {itemType === 'pickup' && selectedItem.procurement 
+                        ? selectedItem.vendor_address 
+                        : selectedItem.customer_address}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {itemType === 'pickup' && selectedItem.procurement 
+                        ? selectedItem.vendor_city 
+                        : selectedItem.customer_city}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                {/* Products Information */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" fontWeight="bold" mb={1} display="flex" alignItems="center">
+                    <ShoppingCart sx={{ mr: 1 }} />
+                    Products
+                  </Typography>
+                  <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
+                    {parseItems(selectedItem.items).map((item, index) => (
+                      <Box key={index} sx={{ mb: 1, pb: 1, borderBottom: index < parseItems(selectedItem.items).length - 1 ? '1px solid #ddd' : 'none' }}>
+                        <Typography variant="body2" fontWeight="bold">
+                          {item.product_name || item.name || `Product ${index + 1}`}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Quantity: {item.quantity || 1} kg
+                        </Typography>
+                        {item.unit_price && (
+                          <Typography variant="body2" color="text.secondary">
+                            Price: ₹{item.unit_price}/kg
+                          </Typography>
+                        )}
+                      </Box>
+                    ))}
+                  </Box>
+                </Grid>
+
+                {/* Order Information */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+                    Order Information
+                  </Typography>
+                  <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">Order Date</Typography>
+                        <Typography variant="body2" fontWeight="bold">
+                          {selectedItem.order_date || 'Not specified'}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">
+                          {itemType === 'pickup' ? 'Pickup Time' : 'Delivery Time'}
+                        </Typography>
+                        <Typography variant="body2" fontWeight="bold">
+                          {selectedItem.time || selectedItem.delivery_time || 'Not specified'}
+                        </Typography>
+                      </Grid>
+                      {selectedItem.total_amount > 0 && (
+                        <Grid item xs={12}>
+                          <Typography variant="body2" color="text.secondary">Total Amount</Typography>
+                          <Typography variant="body2" fontWeight="bold" color="success.main">
+                            ₹{selectedItem.total_amount}
+                          </Typography>
+                        </Grid>
+                      )}
+                    </Grid>
+                  </Box>
+                </Grid>
+
+                {/* Notes */}
+                {selectedItem.notes && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+                      Notes
+                    </Typography>
+                    <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
+                      <Typography variant="body2">
+                        {selectedItem.notes}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
+              </Grid>
+            </>
+          )}
+        </Box>
+      </Modal>
+
       {/* Modal for status update */}
       <Modal open={modalOpen} onClose={handleCloseModal}>
         <Box sx={{
@@ -458,7 +676,7 @@ export default function DriverTask() {
                 <Typography>No pickups assigned.</Typography>
               ) : (
                 pickups.map((pickup, index) => (
-                  <Card key={index} sx={{ mb: 2 }}>
+                  <Card key={index} sx={{ mb: 2, cursor: 'pointer' }} onClick={() => handleOpenDetailModal(pickup, 'pickup')}>
                     <CardContent>
                       <Grid container justifyContent="space-between" alignItems="center">
                         <Typography variant="subtitle1">
@@ -488,7 +706,8 @@ export default function DriverTask() {
                                 : 'grey',
                             color: 'white'
                           }}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent modal from opening
                             if ((pickup.status && (pickup.status.toLowerCase().trim() === 'pending' || pickup.status === 'Waiting for Approval')) && pickup.procurement) {
                               handleStartPickup(pickup);
                             } else if (pickup.status && pickup.status.toLowerCase().trim() === 'approved' && pickup.procurement) {
@@ -516,7 +735,7 @@ export default function DriverTask() {
                 <Typography>No deliveries assigned.</Typography>
               ) : (
                 deliveries.map((delivery, index) => (
-                  <Card key={index} sx={{ mb: 2 }}>
+                  <Card key={index} sx={{ mb: 2, cursor: 'pointer' }} onClick={() => handleOpenDetailModal(delivery, 'delivery')}>
                     <CardContent>
                       <Grid container justifyContent="space-between" alignItems="center">
                         <Typography variant="subtitle1">
@@ -541,7 +760,10 @@ export default function DriverTask() {
                             variant="contained"
                             size="small"
                             sx={{ bgcolor: 'orange', color: 'white' }}
-                            onClick={() => handleOpenModal(delivery)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent modal from opening
+                              handleOpenModal(delivery);
+                            }}
                           >
                             Out for Delivery
                           </Button>
@@ -566,7 +788,10 @@ export default function DriverTask() {
                             variant="contained"
                             size="small"
                             sx={{ bgcolor: 'blue', color: 'white' }}
-                            onClick={() => handleStartDelivery(delivery)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent modal from opening
+                              handleStartDelivery(delivery);
+                            }}
                           >
                             Start Delivery
                           </Button>

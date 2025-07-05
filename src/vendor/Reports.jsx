@@ -12,11 +12,13 @@ import {
   LinearProgress,
   Grid,
   Paper,
-  BottomNavigation
+  BottomNavigation,
+  Badge
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import {
   ResponsiveContainer,
   LineChart,
@@ -34,6 +36,7 @@ import VendorFooter from '../vendorfooter';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import baseurl from '../baseurl/ApiService';
 
 const Reports = () => {
   const navigate = useNavigate();
@@ -41,6 +44,7 @@ const Reports = () => {
   const [procurements, setProcurements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [notificationCount, setNotificationCount] = useState(0);
   const reportRef = useRef(null);
 
   useEffect(() => {
@@ -57,6 +61,32 @@ const Reports = () => {
     };
 
     fetchData();
+  }, []);
+
+  // Fetch notifications
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const authToken = localStorage.getItem('token');
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const vendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
+        if (!vendorId) return;
+        const response = await fetch(`${baseurl}/api/vendor-notification/all/${vendorId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data && data.notifications) {
+          const unreadCount = data.notifications.filter(n => !n.is_read).length;
+          setNotificationCount(unreadCount);
+        }
+      } catch (e) {}
+    };
+    fetchNotifications();
   }, []);
 
   const handleBack = () => {
@@ -277,6 +307,10 @@ const calculatePerformanceMetrics = () => {
     { name: 'Profit', April: 35, May: (totalRevenue * 0.7) / 1000 },
   ];
 
+  const handleNotificationClick = () => {
+    navigate('/vendor-notifications');
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
@@ -302,24 +336,35 @@ const calculatePerformanceMetrics = () => {
           p: 2,
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        <IconButton
-          onClick={handleBack}
-          sx={{
-            backgroundColor: '#FFFFFF4D',
-            color: 'white',
-            borderRadius: '50%',
-            p: 1,
-            mr: 2,
-            '&:hover': { backgroundColor: '#FFFFFF80' },
-          }}
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="h6" fontWeight="bold">
-          Reports
-        </Typography>
+        <Box display="flex" alignItems="center">
+          <IconButton
+            onClick={handleBack}
+            sx={{
+              backgroundColor: '#FFFFFF4D',
+              color: 'white',
+              borderRadius: '50%',
+              p: 1,
+              mr: 2,
+              '&:hover': { backgroundColor: '#FFFFFF80' },
+            }}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h6" fontWeight="bold">
+            Reports
+          </Typography>
+        </Box>
+        <Badge badgeContent={notificationCount} color="error">
+          <IconButton 
+            onClick={handleNotificationClick}
+            sx={{ color: 'white' }}
+          >
+            <NotificationsIcon />
+          </IconButton>
+        </Badge>
       </Box>
 
       <Tabs

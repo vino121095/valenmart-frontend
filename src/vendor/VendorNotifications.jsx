@@ -17,7 +17,8 @@ import {
   CheckCircle as CheckCircleIcon,
   LocalShipping as ShippingIcon,
   Payment as PaymentIcon,
-  Assignment as AssignmentIcon
+  Assignment as AssignmentIcon,
+  ArrowBackIosNew as ArrowBackIosNewIcon
 } from '@mui/icons-material';
 import Header from '../Header';
 import { useNavigate } from 'react-router-dom';
@@ -168,6 +169,9 @@ const VendorNotifications = () => {
         mb={2}
       >
         <Box display="flex" alignItems="center" gap={1}>
+          <IconButton color="inherit" onClick={() => navigate(-1)}>
+            <ArrowBackIosNewIcon />
+          </IconButton>
           <Avatar sx={{ bgcolor: '#ccc' }}>{vendorName?.[0] || 'V'}</Avatar>
           <Typography variant="h6" fontWeight="bold">
             Hello, {vendorName}
