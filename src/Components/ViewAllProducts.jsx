@@ -74,6 +74,8 @@ const ViewAllProducts = () => {
         setLoading(true);
         
         try {
+            console.log('Adding to cart:', { product, quantity }); // Debug log
+            
             const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
             
             const requestBody = {
@@ -88,6 +90,8 @@ const ViewAllProducts = () => {
                 image: product.image,
             };
             
+            console.log('Request body:', requestBody); // Debug log
+            
             const headers = {
                 'Content-Type': 'application/json',
             };
@@ -101,8 +105,11 @@ const ViewAllProducts = () => {
                 headers: headers,
                 body: JSON.stringify(requestBody),
             });
+
+            console.log('Response status:', response.status); // Debug log
             
             const data = await response.json();
+            console.log('Response data:', data); // Debug log
 
             if (response.ok) {
                 showSnackbar(`${product.name} added to cart successfully!`, 'success');
@@ -112,16 +119,25 @@ const ViewAllProducts = () => {
                     [product.id]: 1
                 }));
             } else {
+                console.error('Failed to add to cart:', data);
+                
                 if (response.status === 401) {
                     showSnackbar('Please login to add items to cart', 'error');
                     setTimeout(() => navigate('/login'), 1500);
+                } else if (response.status === 400) {
+                    showSnackbar(`Error: ${data.message || 'Invalid request'}`, 'error');
                 } else {
                     showSnackbar(`Failed to add to cart: ${data.message || 'Unknown error'}`, 'error');
                 }
             }
         } catch (error) {
             console.error('Error adding to cart:', error);
-            showSnackbar('Something went wrong. Please try again.', 'error');
+            
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                showSnackbar('Network error. Please check your connection and try again.', 'error');
+            } else {
+                showSnackbar('Something went wrong. Please try again.', 'error');
+            }
         } finally {
             setLoading(false);
         }
@@ -140,17 +156,24 @@ const ViewAllProducts = () => {
             <Header />
 
             {/* Search */}
-            <Box sx={{ px: 1 }}>
+            <Box sx={{ px: 2 }}>
                 <Paper
                     component="form"
                     sx={{
-                        mt: 2, mb: 2, display: 'flex', alignItems: 'center',
-                        borderRadius: 5, px: 2, justifyContent: 'center'
+                        mt: 2, 
+                        mb: 3, 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        borderRadius: 3, 
+                        px: 2, 
+                        py: 0.5,
+                        backgroundColor: '#f5f5f5',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                     }}
                 >
-                    <SearchIcon />
+                    <SearchIcon sx={{ color: '#666', mr: 1 }} />
                     <InputBase
-                        sx={{ ml: 1, flex: 1 }}
+                        sx={{ ml: 1, flex: 1, fontSize: '0.9rem' }}
                         placeholder="Search Products..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -159,24 +182,71 @@ const ViewAllProducts = () => {
 
                 {/* Products Grid */}
                 <Box>
-                    <Typography variant="subtitle1" sx={{ mb: 1 }}>All Products</Typography>
-                    <Grid container spacing={2} justifyContent='center'>
+                    <Typography 
+                        variant="h6" 
+                        sx={{ 
+                            mb: 2, 
+                            fontWeight: 600, 
+                            color: '#333',
+                            fontSize: '1.1rem'
+                        }}
+                    >
+                        All Products
+                    </Typography>
+                    <Grid container spacing={1.5}>
                         {filteredProducts.map((product, index) => (
-                            <Grid item xs={12} sm={6} md={4} key={product.id || index}>
-                                <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                            <Grid item xs={6} sm={4} md={3} key={product.id || index}>
+                                <Card sx={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    height: '100%',
+                                    borderRadius: 2,
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    transition: 'transform 0.2s',
+                                    minHeight: '200px',
+                                    '&:hover': {
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    }
+                                }}>
                                     <CardMedia
                                         component="img"
-                                        height="140"
+                                        height="100"
                                         image={product.image}
                                         alt={product.name}
-                                        sx={{ objectFit: 'cover', borderRadius: 2 }}
+                                        sx={{ 
+                                            objectFit: 'cover',
+                                            borderTopLeftRadius: 8,
+                                            borderTopRightRadius: 8,
+                                        }}
                                     />
 
-                                    <CardContent sx={{ p: 1 }}>
-                                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                                            <Typography variant="body1" fontWeight="bold">
-                                                {product.name}
+                                    <CardContent sx={{ p: 1.5, flexGrow: 1 }}>
+                                        <Typography 
+                                            variant="h6" 
+                                            sx={{ 
+                                                fontWeight: 600,
+                                                fontSize: '0.9rem',
+                                                color: '#333',
+                                                mb: 0.5,
+                                                lineHeight: 1.2
+                                            }}
+                                        >
+                                            {product.name}
+                                        </Typography>
+                                        
+                                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                                            <Typography 
+                                                variant="h6" 
+                                                sx={{ 
+                                                    color: '#00B76F',
+                                                    fontWeight: 600,
+                                                    fontSize: '0.9rem',
+                                                }}
+                                            >
+                                                ₹{product.price}/kg
                                             </Typography>
+                                            
                                             <Box display="flex" alignItems="center">
                                                 <IconButton
                                                     size="small"
@@ -189,9 +259,17 @@ const ViewAllProducts = () => {
                                                         '&:hover': { bgcolor: '#00985D' },
                                                     }}
                                                 >
-                                                    <RemoveIcon fontSize="inherit" />
+                                                    <RemoveIcon sx={{ fontSize: '0.8rem' }} />
                                                 </IconButton>
-                                                <Typography mx={0.5} fontSize="0.8rem">
+                                                <Typography 
+                                                    sx={{ 
+                                                        mx: 1, 
+                                                        fontSize: '0.8rem',
+                                                        fontWeight: 600,
+                                                        minWidth: '16px',
+                                                        textAlign: 'center'
+                                                    }}
+                                                >
                                                     {quantities[product.id] || 1}
                                                 </Typography>
                                                 <IconButton
@@ -205,35 +283,42 @@ const ViewAllProducts = () => {
                                                         '&:hover': { bgcolor: '#00985D' },
                                                     }}
                                                 >
-                                                    <AddIcon fontSize="inherit" />
+                                                    <AddIcon sx={{ fontSize: '0.8rem' }} />
                                                 </IconButton>
                                             </Box>
                                         </Box>
-
-                                        <Typography variant="subtitle2" color="#00B76F" mt={0.5}>
-                                            ₹{product.price}/kg
-                                        </Typography>
-                                        <Typography variant="caption" display="block">
+                                        
+                                        <Typography 
+                                            variant="body2" 
+                                            sx={{ 
+                                                color: '#666',
+                                                fontSize: '0.7rem'
+                                            }}
+                                        >
                                             {product.description || 'Fresh Market Co.'}
                                         </Typography>
                                     </CardContent>
 
-                                    <CardActions sx={{ px: 1, pb: 1 }}>
+                                    <CardActions sx={{ px: 1.5, pb: 1.5 }}>
                                         <Button
                                             fullWidth
-                                            size="medium"
                                             variant="contained"
                                             disabled={loading}
                                             sx={{
                                                 backgroundColor: '#00B76F',
-                                                fontSize: '0.8rem',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600,
+                                                py: 1,
+                                                borderRadius: 2,
+                                                textTransform: 'none',
+                                                color: '#fff',
                                                 '&:hover': { backgroundColor: '#00985D' },
                                                 '&:disabled': { backgroundColor: '#cccccc' },
                                             }}
                                             onClick={() => handleAddToCart(product, quantities[product.id] || 1)}
                                         >
-                                            <ShoppingCartIcon sx={{ fontSize: '1rem', mr: 1 }} />
-                                            {loading ? 'Adding...' : 'Add to Cart'}
+                                            <ShoppingCartIcon sx={{ fontSize: '0.9rem', mr: 0.5 }} />
+                                            {loading ? 'Adding...' : 'ADD TO CART'}
                                         </Button>
                                     </CardActions>
                                 </Card>
@@ -263,4 +348,4 @@ const ViewAllProducts = () => {
     );
 };
 
-export default ViewAllProducts; 
+export default ViewAllProducts;

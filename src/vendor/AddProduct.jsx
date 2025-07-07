@@ -449,7 +449,7 @@ const AddProduct = () => {
             >
               <ArrowBackIcon sx={{ fontSize: 28 }} />
             </IconButton>
-            <Typography variant="h6" fontWeight="bold">Add Product</Typography>
+            <Typography variant="h6" fontWeight="bold">Request Product</Typography>
           </Box>
           <Badge badgeContent={notificationCount} color="error">
             <IconButton 
@@ -478,7 +478,7 @@ const AddProduct = () => {
 
           <Card elevation={2}>
             <CardContent>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>Add Product</Typography>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>Request Product</Typography>
               <Typography variant="body2" color="text.secondary" mb={3}>
                 Enter product details and request approval
               </Typography>

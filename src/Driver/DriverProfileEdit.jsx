@@ -196,7 +196,7 @@ const DriverProfileEdit = () => {
 
   return (
     <Box sx={{ pb: 10, bgcolor: '#f8f8fb', minHeight: '100vh' }}>
-      <Header label="Edit Driver Profile" showBackArrow={true} showCart={false} showFilter={false} onBack={() => navigate(-1)} />
+      <Header label="Edit Driver Profile" showBackArrow={true} showCart={false} showFilter={false} onBack={() => navigate(-1)} disableInstituteName={true} />
 
       {/* Summary Card */}
       <Paper sx={{ p: 3, m: { xs: 1, sm: 2 }, display: 'flex', alignItems: 'center', gap: 2 }}>

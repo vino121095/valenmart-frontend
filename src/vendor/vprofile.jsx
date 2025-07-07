@@ -23,13 +23,14 @@ import { ArrowBack } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import VendorFooter from '../vendorfooter';
 import { useAuth } from '../App';
+import baseurl from '../baseurl/ApiService';
 
 const VProfile = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
   const [navIndex, setNavIndex] = useState(4); // Profile tab selected by default
   const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
-  const [vendorInfo, setVendorInfo] = useState({ name: '', email: '' });
+  const [vendorInfo, setVendorInfo] = useState({ contact_person: '', email: '' });
 
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -40,26 +41,26 @@ const VProfile = () => {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     vendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
     if (!vendorId) {
-      setVendorInfo({ name: '', email: '' });
+      setVendorInfo({ contact_person: '', email: '' });
       return;
     }
-    fetch(`/api/vendor/${vendorId}`, {
+    fetch(`${baseurl}/api/vendor/${vendorId}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     })
       .then(res => res.json())
       .then(data => {
-        console.log('Vendor API response:', data);
-        setVendorInfo({
-          name: data.full_name || data.org_name || data.company || data.name || data.vendor_name || '',
-          email: data.email || data.vendor_email || ''
-        });
+        // Support both object and array response
+        const vendor = Array.isArray(data.data) ? data.data[0] : data.data;
+        const contact_person = vendor?.contact_person || userData.contact_person || '';
+        const email = vendor?.email || userData.email || '';
+        setVendorInfo({ contact_person, email });
       })
       .catch(() => {
         setVendorInfo({
-          name: userData.name || userData.vendor_name || '',
-          email: userData.email || userData.vendor_email || ''
+          contact_person: userData.contact_person || '',
+          email: userData.email || ''
         });
       });
   }, []);
@@ -109,14 +110,14 @@ const VProfile = () => {
           py: 4,
         }}
       >
-        <Avatar sx={{ bgcolor: '#a8dfc1', width: 80, height: 80, fontSize: 40 }}>
-          S
-        </Avatar>
+        {/* <Avatar sx={{ bgcolor: '#a8dfc1', width: 80, height: 80, fontSize: 40 }}>
+          {vendorInfo.contact_person ? vendorInfo.contact_person.charAt(0).toUpperCase() : 'V'}
+        </Avatar> */}
         <Typography variant="h6" mt={2}>
-          {vendorInfo.name || 'Vendor Name'}
+          {vendorInfo.contact_person || 'Vendor Name'}
         </Typography>
         <Typography color="text.secondary">
-          {vendorInfo.email}
+          {vendorInfo.email || 'vendor@email.com'}
         </Typography>
       </Box>
 

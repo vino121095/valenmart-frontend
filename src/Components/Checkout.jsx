@@ -8,13 +8,15 @@ import {
     TextField,
     Snackbar,
     Alert,
-    CircularProgress
+    CircularProgress,
+    IconButton
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Footer from '../Footer';
 import baseurl from '../baseurl/ApiService';
 import { useAuth } from '../App';
 import { useCart } from '../context/CartContext';
+import ArrowBack from '@mui/icons-material/ArrowBack';
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -44,6 +46,21 @@ const Checkout = () => {
         sgst: 0,
         deliveryFee: 0,
         total: 0
+    });
+    const [addresses, setAddresses] = useState([]);
+    const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
+    const [showAddAddressForm, setShowAddAddressForm] = useState(false);
+    const [newAddress, setNewAddress] = useState({
+        institution_name: '',
+        institution_type: '',
+        address: '',
+        city: '',
+        state: '',
+        postal_code: '',
+        contact_person_name: '',
+        contact_person_email: '',
+        contact_person_phone: '',
+        special_instructions: ''
     });
 
     // Fetch products data
@@ -154,11 +171,117 @@ const Checkout = () => {
         }
     }, [user]);
 
+    // On profile load, set addresses array with profile address as first element
+    useEffect(() => {
+        if (!profileLoading && user) {
+            setAddresses([deliveryDetails]);
+            setSelectedAddressIndex(0);
+        }
+        // eslint-disable-next-line
+    }, [profileLoading]);
+
+    // Add useEffect to fetch previous order addresses
+    useEffect(() => {
+        const fetchPreviousAddresses = async () => {
+            if (!user) return;
+            try {
+                const authToken = localStorage.getItem('token');
+                const customerId = user?.uid || user?.id;
+                const response = await fetch(`${baseurl}/api/order/customer/${customerId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const orders = data.data || [];
+                    // Extract address fields from each order
+                    const prevAddresses = orders.map(order => ({
+                        institution_name: order.institution_name || '',
+                        institution_type: order.institution_type || '',
+                        address: order.address || '',
+                        city: order.city || '',
+                        state: order.state || '',
+                        postal_code: order.postal_code || '',
+                        contact_person_name: order.delivery_contact_name || order.contact_person_name || '',
+                        contact_person_email: order.contact_person_email || '',
+                        contact_person_phone: order.delivery_contact_phone || order.contact_person_phone || '',
+                        special_instructions: order.special_instructions || ''
+                    }));
+                    // Deduplicate addresses (by address+city+state+postal_code+contact_person_name+contact_person_phone)
+                    const uniqueAddresses = [];
+                    const seen = new Set();
+                    // Get the current profile address for comparison
+                    const profileAddr = addresses[0] || deliveryDetails;
+                    prevAddresses.forEach(addr => {
+                        const key = `${addr.institution_name}|${addr.institution_type}|${addr.address}|${addr.city}|${addr.state}|${addr.postal_code}|${addr.contact_person_name}|${addr.contact_person_phone}`;
+                        // Compare with profile address
+                        const isSameAsProfile = (
+                            addr.institution_name === profileAddr.institution_name &&
+                            addr.institution_type === profileAddr.institution_type &&
+                            addr.address === profileAddr.address &&
+                            addr.city === profileAddr.city &&
+                            addr.state === profileAddr.state &&
+                            addr.postal_code === profileAddr.postal_code &&
+                            addr.contact_person_name === profileAddr.contact_person_name &&
+                            addr.contact_person_phone === profileAddr.contact_person_phone
+                        );
+                        if (!seen.has(key) && !isSameAsProfile && addr.address && addr.city && addr.state && addr.postal_code) {
+                            seen.add(key);
+                            uniqueAddresses.push(addr);
+                        }
+                    });
+                    // Add to addresses list (after profile address, before new addresses)
+                    setAddresses(prev => {
+                        const profileAddr = prev[0] || deliveryDetails;
+                        const newAddresses = prev.slice(1 + uniqueAddresses.length);
+                        return [profileAddr, ...uniqueAddresses, ...newAddresses];
+                    });
+                }
+            } catch (err) {
+                // Ignore errors for previous addresses
+            }
+        };
+        fetchPreviousAddresses();
+        // eslint-disable-next-line
+    }, [user, profileLoading]);
+
     const handleInputChange = (field) => (event) => {
         setDeliveryDetails({
             ...deliveryDetails,
             [field]: event.target.value
         });
+    };
+
+    const handleNewAddressInputChange = (field) => (event) => {
+        setNewAddress({
+            ...newAddress,
+            [field]: event.target.value
+        });
+    };
+
+    const handleAddAddress = () => {
+        setAddresses(prev => [...prev, newAddress]);
+        setShowAddAddressForm(false);
+        setNewAddress({
+            institution_name: '',
+            institution_type: '',
+            address: '',
+            city: '',
+            state: '',
+            postal_code: '',
+            contact_person_name: '',
+            contact_person_email: '',
+            contact_person_phone: '',
+            special_instructions: ''
+        });
+        setSelectedAddressIndex(addresses.length); // Select the newly added address
+    };
+
+    const getSelectedDeliveryDetails = () => {
+        return addresses[selectedAddressIndex] || deliveryDetails;
     };
 
     const handlePlaceOrder = async () => {
@@ -174,6 +297,8 @@ const Checkout = () => {
             tomorrow.setDate(tomorrow.getDate() + 1);
             const deliveryDate = tomorrow.toISOString().split('T')[0];
 
+            const selectedDetails = getSelectedDeliveryDetails();
+
             const response = await fetch(`${baseurl}/api/order/create`, {
                 method: 'POST',
                 headers: {
@@ -185,15 +310,15 @@ const Checkout = () => {
                     status: "New Order",
                     delivery_date: deliveryDate,
                     delivery_time: "14:00",
-                    special_instructions: deliveryDetails.special_instructions,
+                    special_instructions: selectedDetails.special_instructions,
                     total_amount: priceDetails.total,
                     payment_method: "cash on delivery",
-                    address: deliveryDetails.address,
-                    city: deliveryDetails.city,
-                    state: deliveryDetails.state,
-                    postal_code: deliveryDetails.postal_code,
-                    delivery_contact_name: deliveryDetails.contact_person_name,
-                    delivery_contact_phone: deliveryDetails.contact_person_phone,
+                    address: selectedDetails.address,
+                    city: selectedDetails.city,
+                    state: selectedDetails.state,
+                    postal_code: selectedDetails.postal_code,
+                    delivery_contact_name: selectedDetails.contact_person_name,
+                    delivery_contact_phone: selectedDetails.contact_person_phone,
                     order_items: cartItems.map(item => ({
                         product_id: item.id,
                         quantity: quantities[item.id] || 1,
@@ -240,14 +365,14 @@ const Checkout = () => {
                                 status: "New Order",
                                 total_amount: priceDetails.total,
                                 paymentMethod: "cash on delivery",
-                                specialInstructions: deliveryDetails.special_instructions,
+                                specialInstructions: selectedDetails.special_instructions,
                                 deliveryAddress: {
-                                    address: deliveryDetails.address,
-                                    city: deliveryDetails.city,
-                                    state: deliveryDetails.state,
-                                    postalCode: deliveryDetails.postal_code,
-                                    contactName: deliveryDetails.contact_person_name,
-                                    contactPhone: deliveryDetails.contact_person_phone
+                                    address: selectedDetails.address,
+                                    city: selectedDetails.city,
+                                    state: selectedDetails.state,
+                                    postalCode: selectedDetails.postal_code,
+                                    contactName: selectedDetails.contact_person_name,
+                                    contactPhone: selectedDetails.contact_person_phone
                                 },
                                 items: cartItems.map(item => ({
                                     id: item.id,
@@ -311,9 +436,14 @@ const Checkout = () => {
                     justifyContent: 'space-between',
                 }}
             >
-                <Typography fontWeight={600} fontSize={18}>
-                    Checkout
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <IconButton onClick={() => navigate(-1)} sx={{ color: '#fff', mr: 1 }}>
+                        <ArrowBack />
+                    </IconButton>
+                    <Typography fontWeight={600} fontSize={18}>
+                        Checkout
+                    </Typography>
+                </Box>
             </Box>
 
             {/* Content */}
@@ -331,75 +461,143 @@ const Checkout = () => {
                     >
                         Delivery Details
                     </Typography>
-                    {profileLoading ? (
+                    {/* Address list with radio buttons */}
+                    {addresses.length === 0 && profileLoading ? (
                         <Box display="flex" justifyContent="center" p={3}>
                             <CircularProgress />
                         </Box>
-                    ) : hasMissingDetails ? (
-                        <Box>
-                            <TextField
-                                fullWidth
-                                multiline
-                                rows={3}
-                                label="Delivery Address"
-                                value={`${deliveryDetails.institution_name}, ${deliveryDetails.address}, ${deliveryDetails.city}, ${deliveryDetails.state} - ${deliveryDetails.postal_code}`}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setDeliveryDetails(prev => ({
-                                        ...prev,
-                                        address: value
-                                    }));
-                                }}
-                                variant="outlined"
-                                sx={{ mb: 2 }}
-                            />
-                            <TextField
-                                fullWidth
-                                label="Contact Name"
-                                value={deliveryDetails.contact_person_name}
-                                onChange={handleInputChange('contact_person_name')}
-                                variant="outlined"
-                                sx={{ mb: 2 }}
-                            />
-                            <TextField
-                                fullWidth
-                                label="Contact Phone"
-                                value={deliveryDetails.contact_person_phone}
-                                onChange={handleInputChange('contact_person_phone')}
-                                variant="outlined"
-                                sx={{ mb: 2 }}
-                            />
-                            <TextField
-                                fullWidth
-                                label="Special Instructions (Optional)"
-                                value={deliveryDetails.special_instructions}
-                                onChange={handleInputChange('special_instructions')}
-                                variant="outlined"
-                                multiline
-                                rows={2}
-                            />
-                        </Box>
                     ) : (
                         <Box>
-                            <Typography variant="body1" gutterBottom>
-                                <strong>Delivery Address:</strong> {deliveryDetails.institution_name}, {deliveryDetails.address}, {deliveryDetails.city}, {deliveryDetails.state} - {deliveryDetails.postal_code}
-                            </Typography>
-                            <Typography variant="body1" gutterBottom>
-                                <strong>Contact Name:</strong> {deliveryDetails.contact_person_name}
-                            </Typography>
-                            <Typography variant="body1" gutterBottom>
-                                <strong>Contact Phone:</strong> {deliveryDetails.contact_person_phone}
-                            </Typography>
-                            <TextField
-                                fullWidth
-                                label="Special Instructions (Optional)"
-                                value={deliveryDetails.special_instructions}
-                                onChange={handleInputChange('special_instructions')}
-                                variant="outlined"
-                                multiline
-                                rows={2}
-                                sx={{ mt: 2 }}
-                            />
+                            {addresses.map((addr, idx) => (
+                                <Box key={idx} sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, background: idx === 0 ? '#f5fff5' : '#f9f9fb', display: 'flex', alignItems: 'flex-start' }}>
+                                    <input
+                                        type="radio"
+                                        checked={selectedAddressIndex === idx}
+                                        onChange={() => setSelectedAddressIndex(idx)}
+                                        style={{ marginTop: 6, marginRight: 12 }}
+                                    />
+                                    <Box>
+                                        <Typography variant="body1" gutterBottom>
+                                            <strong>Delivery Address:</strong> {addr.institution_name}, {addr.address}, {addr.city}, {addr.state} - {addr.postal_code}
+                                        </Typography>
+                                        <Typography variant="body1" gutterBottom>
+                                            <strong>Contact Name:</strong> {addr.contact_person_name}
+                                        </Typography>
+                                        <Typography variant="body1" gutterBottom>
+                                            <strong>Contact Phone:</strong> {addr.contact_person_phone}
+                                        </Typography>
+                                        {addr.special_instructions && (
+                                            <Typography variant="body2" color="text.secondary">
+                                                <strong>Instructions:</strong> {addr.special_instructions}
+                                            </Typography>
+                                        )}
+                                        {idx === 0 && <Typography variant="caption" color="success.main">(Profile Address)</Typography>}
+                                    </Box>
+                                </Box>
+                            ))}
+                            {/* Add Address Button */}
+                            {!showAddAddressForm && (
+                                <Button variant="outlined" onClick={() => setShowAddAddressForm(true)} sx={{ mt: 1 }}>
+                                    Add Address
+                                </Button>
+                            )}
+                            {/* Add Address Form */}
+                            {showAddAddressForm && (
+                                <Box sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, background: '#fff' }}>
+                                    <TextField
+                                        fullWidth
+                                        label="Institution Name"
+                                        value={newAddress.institution_name}
+                                        onChange={handleNewAddressInputChange('institution_name')}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Institution Type"
+                                        value={newAddress.institution_type}
+                                        onChange={handleNewAddressInputChange('institution_type')}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        multiline
+                                        rows={3}
+                                        label="Delivery Address"
+                                        value={newAddress.address}
+                                        onChange={handleNewAddressInputChange('address')}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="City"
+                                        value={newAddress.city}
+                                        onChange={handleNewAddressInputChange('city')}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="State"
+                                        value={newAddress.state}
+                                        onChange={handleNewAddressInputChange('state')}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Postal Code"
+                                        value={newAddress.postal_code}
+                                        onChange={handleNewAddressInputChange('postal_code')}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Contact Name"
+                                        value={newAddress.contact_person_name}
+                                        onChange={handleNewAddressInputChange('contact_person_name')}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Contact Email"
+                                        value={newAddress.contact_person_email}
+                                        onChange={handleNewAddressInputChange('contact_person_email')}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Contact Phone"
+                                        value={newAddress.contact_person_phone}
+                                        onChange={handleNewAddressInputChange('contact_person_phone')}
+                                        variant="outlined"
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label="Special Instructions (Optional)"
+                                        value={newAddress.special_instructions}
+                                        onChange={handleNewAddressInputChange('special_instructions')}
+                                        variant="outlined"
+                                        multiline
+                                        rows={2}
+                                        sx={{ mb: 2 }}
+                                    />
+                                    <Box sx={{ display: 'flex', gap: 2 }}>
+                                        <Button variant="contained" onClick={handleAddAddress}>
+                                            Save Address
+                                        </Button>
+                                        <Button variant="text" color="error" onClick={() => setShowAddAddressForm(false)}>
+                                            Cancel
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            )}
                         </Box>
                     )}
                 </Paper>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import {
@@ -33,6 +33,8 @@ import {
   ShoppingCart
 } from '@mui/icons-material';
 
+import baseurl from '../baseurl/ApiService';
+
 const activityData = {
   deliveriesCompleted: 16,
   pickupsCompleted: 8,
@@ -62,6 +64,41 @@ export default function DriverAccount() {
   const location = useLocation();
   const navigate = useNavigate();
   const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
+  const [driverInfo, setDriverInfo] = useState({ name: '', email: '', profileImage: '', initials: '' });
+
+  useEffect(() => {
+    const fetchDriverDetails = async () => {
+      try {
+        const userData = localStorage.getItem('userData');
+        const parsedData = userData ? JSON.parse(userData) : {};
+        const driverId = localStorage.getItem('driver_id') || parsedData.did || parsedData.id;
+        if (!driverId) return;
+        const authToken = localStorage.getItem('token');
+        const response = await fetch(`${baseurl}/api/driver-details/${driverId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        const driverData = data.data || data;
+        const firstName = driverData.first_name || driverData.name || '';
+        const lastName = driverData.last_name || '';
+        const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+        const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+        const profileImage = driverData.driver_image ? `${baseurl}/${driverData.driver_image}` : (driverData.avatar || '');
+        setDriverInfo({
+          name: fullName,
+          email: driverData.email || '',
+          profileImage,
+          initials
+        });
+      } catch (e) {}
+    };
+    fetchDriverDetails();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -69,8 +106,9 @@ export default function DriverAccount() {
     localStorage.removeItem('userType');
     localStorage.removeItem('userData');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('driver_id');
     setOpenLogoutDialog(false);
-    navigate('/login', { replace: true });
+    window.location.replace('/login');
   };
 
   const handleLogoutClick = () => {
@@ -102,9 +140,11 @@ export default function DriverAccount() {
 
       <Container sx={{ mt: 3 }}>
         <Box textAlign="center" mb={3}>
-          <Avatar sx={{ width: 80, height: 80, bgcolor: '#d4edda', color: '#2e7d32', fontSize: 32, mx: 'auto' }}>S</Avatar>
-          <Typography variant="h6" mt={1}>John</Typography>
-          <Typography variant="body2" color="text.secondary">john@example.com</Typography>
+          <Avatar sx={{ width: 80, height: 80, bgcolor: '#d4edda', color: '#2e7d32', fontSize: 32, mx: 'auto' }} src={driverInfo.profileImage || undefined}>
+            {!driverInfo.profileImage && driverInfo.initials}
+          </Avatar>
+          <Typography variant="h6" mt={1}>{driverInfo.name}</Typography>
+          <Typography variant="body2" color="text.secondary">{driverInfo.email}</Typography>
         </Box>
 
         <Card>

@@ -19,6 +19,7 @@ function Header({
   showAvatar = true,
   avatarText = 'S',
   showFilter = false,
+  disableInstituteName = false,
 }) {
   const navigate = useNavigate();
   const { cartCount } = useCart();
@@ -28,8 +29,9 @@ function Header({
   const [instituteName, setInstituteName] = useState('');
   const [headerProfileImageUrl, setHeaderProfileImageUrl] = useState('');
 
-  // Fetch customer profile
+  // Fetch customer profile only if not disabled
   useEffect(() => {
+    if (disableInstituteName) return;
     const fetchCustomerProfile = async () => {
       try {
         const customerId = user?.uid || user?.id;
@@ -111,7 +113,7 @@ function Header({
     } else {
       console.log('No user data available'); // Debug log
     }
-  }, [user]);
+  }, [user, disableInstituteName]);
 
   // Get the first letter of institute name for avatar
   const getAvatarText = () => {
@@ -123,10 +125,10 @@ function Header({
 
   // Get the display label
   const getDisplayLabel = () => {
-    if (instituteName) {
+    if (!disableInstituteName && instituteName) {
       return instituteName;
     }
-    return label; // Default label if no institute name
+    return label; // Default label if no institute name or disabled
   };
 
   const markNotificationsAsRead = async () => {

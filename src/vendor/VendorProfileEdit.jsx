@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Container, TextField, Typography, Paper, Snackbar, Alert, CircularProgress, MenuItem } from '@mui/material';
+import { Box, Button, Container, TextField, Typography, Paper, Snackbar, Alert, CircularProgress, MenuItem, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import baseurl from '../baseurl/ApiService';
 import VendorFooter from '../vendorfooter';
+import { ArrowBack } from '@mui/icons-material';
 
 const VendorProfileEdit = () => {
   const [vendor, setVendor] = useState({
@@ -86,9 +87,21 @@ const VendorProfileEdit = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   return (
     <>
       <Container maxWidth="sm" sx={{ mt: 4, mb: 8 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+        <IconButton onClick={handleBack}>
+          <ArrowBack />
+        </IconButton>
+        <Typography variant="h6" sx={{ ml: 1 }}>
+          Account Settings
+        </Typography>
+      </Box>
         <Paper sx={{ p: 3, borderRadius: 2 }}>
           <Typography variant="h5" mb={2} fontWeight="bold">Edit Organization Details</Typography>
           {loading ? (

@@ -6,6 +6,32 @@ import DriverFooter from '../driverfooter';
 import baseurl from '../baseurl/ApiService';
 import DriverNotifications from './DriverNotifications';
 
+function formatAddress(task) {
+  // For procurement pickups, show vendor address
+  if (task.type === 'Pickup' && (task.vendor_address || task.vendor_city || task.vendor_state || task.vendor_pincode)) {
+    let address = task.vendor_address || task.address || 'Address not available';
+    let city = task.vendor_city || task.city || '';
+    let state = task.vendor_state || task.state || '';
+    let pincode = task.vendor_pincode || task.pincode || '';
+    let formattedAddress = address;
+    if (city) formattedAddress += `, ${city}`;
+    if (state) formattedAddress += `, ${state}`;
+    if (pincode) formattedAddress += ` - ${pincode}`;
+    return formattedAddress;
+  } else {
+    // For regular pickups and deliveries, show customer address
+    let address = task.customer_address || task.address || 'Address not available';
+    let city = task.customer_city || task.city || '';
+    let state = task.customer_state || task.state || '';
+    let pincode = task.customer_pincode || task.postal_code || task.pincode || '';
+    let formattedAddress = address;
+    if (city) formattedAddress += `, ${city}`;
+    if (state) formattedAddress += `, ${state}`;
+    if (pincode) formattedAddress += ` - ${pincode}`;
+    return formattedAddress;
+  }
+}
+
 export default function DriverDashboard() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,10 +93,12 @@ export default function DriverDashboard() {
       const lastName = driverData.last_name || '';
       const fullName = lastName ? `${firstName} ${lastName}` : firstName;
       const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+      const profileImage = `${baseurl}/${driverData.driver_image}` || driverData.avatar || '';
 
       setDriverInfo({
         name: fullName,
-        initials: initials
+        initials: initials,
+        profileImage: profileImage
       });
 
     } catch (error) {
@@ -326,8 +354,8 @@ export default function DriverDashboard() {
       <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item display="flex" alignItems="center" gap={2}>
-            <Avatar sx={{ bgcolor: '#fff', color: '#2bb673' }}>
-              {driverInfo.initials}
+          <Avatar sx={{ width: 64, height: 64 }} src={driverInfo.profileImage || undefined}>
+              {!driverInfo.profileImage && driverInfo.initials}
             </Avatar>
             <Typography variant="h6">Hello, {driverInfo.name}</Typography>
           </Grid>
@@ -383,7 +411,7 @@ export default function DriverDashboard() {
                 <CardContent sx={{ flex: 1 }}>
                   <Typography variant="subtitle2">Order {task.id} - {task.type}</Typography>
                   <Typography variant="body2">{task.location}</Typography>
-                  <Typography variant="body2" color="text.secondary">{task.address}</Typography>
+                  <Typography variant="body2" color="text.secondary">{formatAddress(task)}</Typography>
                   <Typography variant="body2" color="text.secondary">{task.distance} away | {task.time}</Typography>
                   <Button
                     variant="contained"

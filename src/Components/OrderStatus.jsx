@@ -84,9 +84,9 @@ const OrderStatus = () => {
         
         const statusMap = {
             'new order': 0,
+            'waiting for approval': 1,
             'out for delivery': 2,
-            'shipping': 3,
-            'delivered': 4
+            'delivered': 3
         };
         
         return statusMap[status.toLowerCase()] || 0;
@@ -94,22 +94,18 @@ const OrderStatus = () => {
 
     const steps = [
         {
-            title: 'Order Confirmed',
-            subtitle: 'Your Order has been confirmed',
+            title: 'New Order',
+            subtitle: 'Your order has been placed',
             completed: true,
         },
         {
-            title: 'Preparing Order',
-            subtitle: 'Your Items are being packed',
-            completed: true,
-        },
-        {
-            title: 'Out for Delivery',
+            title: 'Waiting for Approval',
+            subtitle: 'Your order is waiting for approval',
             completed: false,
         },
         {
-            title: 'Order Shipping',
-            subtitle: 'Your Order has been shipped',
+            title: 'Out for Delivery',
+            subtitle: 'Your order is out for delivery',
             completed: false,
         },
         {

@@ -68,10 +68,10 @@ const OrderCard = ({ order, orderItems }) => {
     switch (status?.toLowerCase()) {
       case 'new order':
         return 0;
+      case 'waiting for approval':
+        return 33;
       case 'out for delivery':
-        return 50;
-      case 'shipping':
-        return 80;
+        return 66;
       case 'delivered':
         return 100;
       default:
@@ -84,10 +84,10 @@ const OrderCard = ({ order, orderItems }) => {
     switch (status?.toLowerCase()) {
       case 'new order':
         return '#FFA000';
+      case 'waiting for approval':
+        return '#FFB300';
       case 'out for delivery':
         return '#2196F3';
-      case 'shipping':
-        return '#FF9800';
       case 'delivered':
         return '#00B074';
       default:
@@ -98,8 +98,8 @@ const OrderCard = ({ order, orderItems }) => {
   // Shorter labels for better display
   const sliderMarks = [
     { value: 0, label: 'New Order' },
-    { value: 50, label: 'Out for delivery' },
-    { value: 80, label: 'Shipping' },
+    { value: 33, label: 'Waiting for Approval' },
+    { value: 66, label: 'Out for Delivery' },
     { value: 100, label: 'Delivered' },
   ];
 
@@ -150,12 +150,14 @@ const OrderCard = ({ order, orderItems }) => {
   const handleCancelOrder = async () => {
     try {
       const authToken = localStorage.getItem('token');
-      const response = await fetch(`${baseurl}/api/order/cancel/${order.oid}`, {
+      const orderId = order.oid || order.id || order.order_id;
+      const response = await fetch(`${baseurl}/api/order/update/${orderId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
-        }
+        },
+        body: JSON.stringify({ status: 'Cancelled' })
       });
 
       if (!response.ok) {
@@ -165,6 +167,8 @@ const OrderCard = ({ order, orderItems }) => {
 
       // Show success message
       setError('');
+      // Show success message before reloading
+      alert('Order cancelled successfully!');
       // Refresh the page to show updated order status
       window.location.reload();
     } catch (error) {
@@ -179,19 +183,6 @@ const OrderCard = ({ order, orderItems }) => {
         orderId: order.id
       }
     });
-  };
-
-  const handleReorder = () => {
-    if (orderDetails) {
-      navigate('/cart', {
-        state: {
-          items: orderDetails.order_items.map(item => ({
-            id: item.product_id,
-            quantity: item.quantity
-          }))
-        }
-      });
-    }
   };
 
   useEffect(() => {
@@ -421,25 +412,6 @@ const OrderCard = ({ order, orderItems }) => {
                 }}
               >
                 View Invoice
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleReorder}
-                sx={{
-                  borderColor: statusColor,
-                  color: statusColor,
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  px: 2,
-                  fontWeight: 600,
-                  '&:hover': {
-                    borderColor: statusColor,
-                    backgroundColor: `${statusColor}10`,
-                  }
-                }}
-              >
-                Reorder
               </Button>
             </>
           )}

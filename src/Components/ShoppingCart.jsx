@@ -496,45 +496,6 @@ const ShoppingCart = () => {
           )}
         </Paper>
 
-        {/* Delivery Address */}
-        <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 3, border: '1px solid #e2e8f0' }}>
-          <Box display="flex" alignItems="center" mb={2}>
-            <Box 
-              sx={{ 
-                width: 40, 
-                height: 40, 
-                borderRadius: '50%', 
-                backgroundColor: '#dbeafe', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                mr: 2
-              }}
-            >
-              <Typography sx={{ fontSize: 18 }}>📍</Typography>
-            </Box>
-            <Box>
-              <Typography fontWeight="bold" variant="body1">Delivery Address</Typography>
-              <Typography variant="body2" color="text.secondary">Expected in 30-45 mins</Typography>
-            </Box>
-          </Box>
-          <Box sx={{ ml: 6 }}>
-            {userDetails ? (
-              <>
-                <Typography variant="body2" color="text.primary">{userDetails.address || 'No address provided'}</Typography>
-                <Typography variant="body2" color="text.primary">{userDetails.city || ''}</Typography>
-                <Typography variant="body2" color="text.primary">{userDetails.state || ''} - {userDetails.pincode || ''}</Typography>
-                <Box display="flex" alignItems="center" mt={1} pt={1} sx={{ borderTop: '1px solid #f1f5f9' }}>
-                  <Typography sx={{ fontSize: 14, mr: 1 }}>📞</Typography>
-                  <Typography variant="body2" color="text.secondary">{userDetails.phone || 'No phone number provided'}</Typography>
-                </Box>
-              </>
-            ) : (
-              <Typography variant="body2" color="text.secondary">Loading delivery details...</Typography>
-            )}
-          </Box>
-        </Paper>
-
         {/* Price Breakdown */}
         <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 3, border: '1px solid #e2e8f0' }}>
           <Box display="flex" alignItems="center" mb={3}>

@@ -42,6 +42,58 @@ export default function DriverTask() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [itemType, setItemType] = useState(''); // 'pickup' or 'delivery'
 
+  // Fetch vendor details by ID
+  const fetchVendorDetails = async (vendorId) => {
+    try {
+      const authToken = localStorage.getItem('token');
+      const response = await fetch(`${baseurl}/api/vendor/${vendorId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch vendor details');
+        return null;
+      }
+      
+      const data = await response.json();
+      console.log('Vendor details:', data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching vendor details:', error);
+      return null;
+    }
+  };
+
+  // Fetch order items details
+  const fetchOrderItems = async () => {
+    try {
+      const authToken = localStorage.getItem('token');
+      const response = await fetch(`${baseurl}/api/order-items/all`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch order items');
+        return null;
+      }
+      
+      const data = await response.json();
+      console.log('Order items:', data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching order items:', error);
+      return null;
+    }
+  };
+
   // Fetch and classify orders
   const fetchOrders = async () => {
     setLoading(true);
@@ -115,26 +167,49 @@ export default function DriverTask() {
         order.status === 'Out for Delivery' || order.status === 'Completed' || order.status === 'Waiting for Approval'
       );
 
-      // Transform procurement pickups
-      const transformedProcurements = assignedProcurements.map(order => ({
-        procurement: true,
-        oid: order.procurement_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
-        type: 'Pickup',
-        location: order.vendor_name || order.vendor?.name || 'Vendor Location',
-        address: `${order.vendor_address || order.address || 'Address not available'}, ${order.vendor_city || order.city || ''}`,
-        time: order.pickup_time || order.expected_delivery_date || order.order_date || 'Time not set',
-        status: order.status || 'Approved',
-        // Add detailed information
-        vendor_name: order.vendor_name || order.vendor?.name || 'Unknown Vendor',
-        vendor_address: order.vendor_address || order.address || 'Address not available',
-        vendor_city: order.vendor_city || order.city || '',
-        vendor_phone: order.vendor_phone || order.contact_phone || 'Not provided',
-        items: order.items || [],
-        notes: order.notes || '',
-        order_date: order.order_date || '',
-        expected_delivery_date: order.expected_delivery_date || '',
-        total_amount: order.price || order.total_amount || 0,
-      }));
+      // Transform procurement pickups with vendor details
+      const transformedProcurements = await Promise.all(
+        assignedProcurements.map(async (order) => {
+          // Fetch vendor details if vendor_id is available
+          let vendorDetails = null;
+          if (order.vendor_id) {
+            console.log('Fetching vendor details for vendor_id:', order.vendor_id);
+            vendorDetails = await fetchVendorDetails(order.vendor_id);
+            console.log('Vendor details fetched:', vendorDetails);
+          } else {
+            console.log('No vendor_id found for order:', order.procurement_id);
+          }
+
+          const transformedPickup = {
+            procurement: true,
+            oid: order.procurement_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
+            type: 'Pickup',
+            location: order.vendor_name || order.vendor?.name || vendorDetails?.contact_person || 'Vendor Location',
+            address: `${order.vendor_address || order.address || vendorDetails?.address || 'Address not available'}, ${order.vendor_city || order.city || vendorDetails?.city || ''}`,
+            time: order.pickup_time || order.expected_delivery_date || order.order_date || 'Time not set',
+            status: order.status || 'Approved',
+            // Add detailed information
+            vendor_name: order.vendor_name || order.vendor?.name || vendorDetails?.data.contact_person || 'Unknown Vendor',
+            vendor_address: order.vendor_address || order.address || vendorDetails?.data.address || 'Address not available',
+            vendor_city: order.vendor_city || order.city || vendorDetails?.data.city || '',
+            vendor_state: vendorDetails?.state || '',
+            vendor_pincode: vendorDetails?.data.pincode || '',
+            vendor_phone: order.vendor_phone || order.contact_phone || vendorDetails?.data.phone || 'Not provided',
+            vendor_email: vendorDetails?.data.email || 'Not provided',
+            vendor_id: order.vendor_id,
+            items: order.items || [],
+            notes: order.notes || '',
+            order_date: order.order_date || '',
+            expected_delivery_date: order.expected_delivery_date || '',
+            total_amount: order.price || order.total_amount || 0,
+            // Ensure items are properly formatted
+            raw_items: order.items,
+          };
+
+          console.log('Transformed procurement pickup:', transformedPickup);
+          return transformedPickup;
+        })
+      );
 
       // Transform regular pickups
       const transformedPickups = pickupOrders.map(order => ({
@@ -156,28 +231,52 @@ export default function DriverTask() {
         order_date: order.order_date || '',
         delivery_time: order.delivery_time || '',
         total_amount: order.total_amount || 0,
+        // Ensure items are properly formatted
+        raw_items: order.items,
       }));
 
-      // Transform regular deliveries
-      const transformedDeliveries = deliveryOrders.map(order => ({
-        oid: order.oid || order.order_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
-        type: 'Delivery',
-        location: order.CustomerProfile?.institution_name || order.location || 'Unknown Location',
-        address: `${order.address || 'Address not available'}, ${order.city || ''}`,
-        time: order.time || order.delivery_time || 'Time not set',
-        status: order.status || 'pending',
-        // Add detailed information
-        customer_name: order.CustomerProfile?.contact_person_name || order.customer_name || 'Unknown Customer',
-        customer_address: order.address || 'Address not available',
-        customer_city: order.city || '',
-        customer_phone: order.CustomerProfile?.contact_person_phone || order.contact_phone || 'Not provided',
-        customer_email: order.CustomerProfile?.contact_person_email || order.email || 'Not provided',
-        items: order.items || [],
-        notes: order.notes || '',
-        order_date: order.order_date || '',
-        delivery_time: order.delivery_time || '',
-        total_amount: order.total_amount || 0,
-      }));
+      // Fetch all order items once
+      const orderItemsData = await fetchOrderItems();
+      console.log('All order items fetched:', orderItemsData);
+
+      // Transform regular deliveries with order items
+      const transformedDeliveries = deliveryOrders.map((order) => {
+        // Find order items for this specific order
+        let orderItems = [];
+        if (orderItemsData && orderItemsData.data && Array.isArray(orderItemsData.data)) {
+          orderItems = orderItemsData.data.filter(item => 
+            String(item.order_id) === String(order.oid || order.order_id)
+          );
+          console.log(`Order items for order ${order.oid || order.order_id}:`, orderItems);
+        }
+
+        return {
+          oid: order.oid || order.order_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
+          type: 'Delivery',
+          location: order.CustomerProfile?.institution_name || order.location || 'Unknown Location',
+          address: `${order.address || 'Address not available'}, ${order.city || ''}`,
+          time: order.time || order.delivery_time || 'Time not set',
+          status: order.status || 'pending',
+          // Add detailed information
+          customer_name: order.CustomerProfile?.contact_person_name || order.customer_name || 'Unknown Customer',
+          customer_address: order.address || 'Address not available',
+          customer_city: order.city || '',
+          customer_state: order.state || '',
+          customer_pincode: order.postal_code || order.pincode || '',
+          customer_phone: order.CustomerProfile?.contact_person_phone || order.contact_phone || 'Not provided',
+          customer_email: order.CustomerProfile?.contact_person_email || order.email || 'Not provided',
+          items: order.items || [],
+          notes: order.notes || '',
+          order_date: order.order_date || '',
+          delivery_time: order.delivery_time || '',
+          total_amount: order.total_amount || 0,
+          // Ensure items are properly formatted
+          raw_items: order.items,
+          // Add order items information
+          order_items: orderItems,
+          order_id: order.oid || order.order_id,
+        };
+      });
 
       // Combine pickups (regular + procurement)
       setPickups([...transformedPickups, ...transformedProcurements]);
@@ -198,6 +297,16 @@ export default function DriverTask() {
 
   // Detail modal handlers
   const handleOpenDetailModal = (item, type) => {
+    console.log('Opening detail modal for:', item);
+    console.log('Item type:', type);
+    console.log('Is procurement:', item.procurement);
+    console.log('Vendor details:', {
+      vendor_name: item.vendor_name,
+      vendor_phone: item.vendor_phone,
+      vendor_address: item.vendor_address,
+      vendor_city: item.vendor_city,
+      vendor_id: item.vendor_id
+    });
     setSelectedItem(item);
     setItemType(type);
     setDetailModalOpen(true);
@@ -212,15 +321,138 @@ export default function DriverTask() {
   // Parse items for display
   const parseItems = (items) => {
     if (!items) return [];
-    if (typeof items === 'string') {
+    
+    // For deliveries, try to use order_items first if available
+    if (itemType === 'delivery' && selectedItem?.order_items && selectedItem.order_items.length > 0) {
+      console.log('Using order_items for delivery:', selectedItem.order_items);
+      
+      return selectedItem.order_items.map(item => ({
+        product_name: item.product_name || item.name || getProductName(item.product_id) || 'Unknown Product',
+        quantity: item.quantity || 1,
+        unit_price: item.unit_price || item.price || 0,
+        product_id: item.product_id
+      }));
+    }
+    
+    // Try to use raw_items if available (for better data preservation)
+    const itemsToParse = selectedItem?.raw_items || items;
+    
+    console.log('Parsing items:', itemsToParse);
+    
+    // If items is a string, try to parse it
+    if (typeof itemsToParse === 'string') {
       try {
-        const parsed = JSON.parse(items);
-        return Array.isArray(parsed) ? parsed : [parsed];
+        // Try to parse as JSON
+        const parsed = JSON.parse(itemsToParse);
+        console.log('Parsed JSON items:', parsed);
+        
+        if (Array.isArray(parsed)) {
+          return parsed.map(item => ({
+            product_name: item.product_name || item.name || getProductName(item.product_id) || 'Unknown Product',
+            quantity: item.quantity || 1,
+            unit_price: item.unit_price || item.price || 0,
+            product_id: item.product_id
+          }));
+        } else if (typeof parsed === 'object') {
+          return [{
+            product_name: parsed.product_name || parsed.name || getProductName(parsed.product_id) || 'Unknown Product',
+            quantity: parsed.quantity || 1,
+            unit_price: parsed.unit_price || parsed.price || 0,
+            product_id: parsed.product_id
+          }];
+        }
       } catch (e) {
-        return [{ product_name: items }];
+        console.log('Failed to parse JSON, treating as string:', itemsToParse);
+        // If JSON parsing fails, treat as a simple string
+        return [{
+          product_name: itemsToParse,
+          quantity: 1,
+          unit_price: 0,
+          product_id: null
+        }];
       }
     }
-    return Array.isArray(items) ? items : [items];
+    
+    // If items is already an array
+    if (Array.isArray(itemsToParse)) {
+      return itemsToParse.map(item => ({
+        product_name: item.product_name || item.name || getProductName(item.product_id) || 'Unknown Product',
+        quantity: item.quantity || 1,
+        unit_price: item.unit_price || item.price || 0,
+        product_id: item.product_id
+      }));
+    }
+    
+    // If items is an object
+    if (typeof itemsToParse === 'object' && itemsToParse !== null) {
+      return [{
+        product_name: itemsToParse.product_name || itemsToParse.name || getProductName(itemsToParse.product_id) || 'Unknown Product',
+        quantity: itemsToParse.quantity || 1,
+        unit_price: itemsToParse.unit_price || itemsToParse.price || 0,
+        product_id: itemsToParse.product_id
+      }];
+    }
+    
+    console.log('No items found or unrecognized format');
+    return [];
+  };
+
+  // Helper function to get product name from product ID
+  const getProductName = (productId) => {
+    if (!productId) return null;
+    
+    // You might want to fetch product names from an API or use a mapping
+    const productMap = {
+      1: 'Potatoes',
+      2: 'Tomatoes', 
+      3: 'Spinach',
+      4: 'Onions',
+      5: 'Carrots',
+      6: 'Beans',
+      7: 'Peas',
+      8: 'Cabbage',
+      9: 'Cauliflower',
+      10: 'Brinjal'
+      // Add more product mappings as needed
+    };
+    return productMap[productId] || `Product ${productId}`;
+  };
+
+  // Helper function to format address
+  const formatAddress = (item) => {
+    console.log('Formatting address for item:', item);
+    console.log('Item type:', itemType);
+    console.log('Is procurement:', item?.procurement);
+    
+    if (itemType === 'pickup' && item?.procurement) {
+      // For procurement pickups, show vendor address
+      const address = item.vendor_address || item.address || 'Address not available';
+      const city = item.vendor_city || item.city || '';
+      const state = item.vendor_state || item.state || '';
+      const pincode = item.vendor_pincode || item.pincode || '';
+      
+      let formattedAddress = address;
+      if (city) formattedAddress += `, ${city}`;
+      if (state) formattedAddress += `, ${state}`;
+      if (pincode) formattedAddress += ` - ${pincode}`;
+      
+      console.log('Vendor address formatted:', formattedAddress);
+      return formattedAddress;
+    } else {
+      // For regular pickups and deliveries, show customer address
+      const address = item?.customer_address || item?.address || 'Address not available';
+      const city = item?.customer_city || item?.city || '';
+      const state = item?.customer_state || item?.state || '';
+      const pincode = item?.customer_pincode || item?.postal_code || item?.pincode || '';
+      
+      let formattedAddress = address;
+      if (city) formattedAddress += `, ${city}`;
+      if (state) formattedAddress += `, ${state}`;
+      if (pincode) formattedAddress += ` - ${pincode}`;
+      
+      console.log('Customer address formatted:', formattedAddress);
+      return formattedAddress;
+    }
   };
 
   // Modal handlers
@@ -420,19 +652,27 @@ export default function DriverTask() {
                   <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
                     <Typography variant="body1" fontWeight="bold">
                       {itemType === 'pickup' && selectedItem.procurement 
-                        ? selectedItem.vendor_name 
-                        : selectedItem.customer_name}
+                        ? (selectedItem.vendor_name || 'Unknown Vendor')
+                        : (selectedItem.customer_name || 'Unknown Customer')}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" display="flex" alignItems="center" mt={1}>
                       <Phone sx={{ mr: 1, fontSize: 16 }} />
                       {itemType === 'pickup' && selectedItem.procurement 
-                        ? selectedItem.vendor_phone 
-                        : selectedItem.customer_phone}
+                        ? (selectedItem.vendor_phone || 'Phone not provided')
+                        : (selectedItem.customer_phone || 'Phone not provided')}
                     </Typography>
-                    {itemType === 'pickup' && selectedItem.procurement ? null : (
-                      <Typography variant="body2" color="text.secondary" mt={0.5}>
-                        {selectedItem.customer_email}
-                      </Typography>
+                    {itemType === 'pickup' && selectedItem.procurement ? (
+                      selectedItem.vendor_email && (
+                        <Typography variant="body2" color="text.secondary" mt={0.5}>
+                          {selectedItem.vendor_email}
+                        </Typography>
+                      )
+                    ) : (
+                      selectedItem.customer_email && (
+                        <Typography variant="body2" color="text.secondary" mt={0.5}>
+                          {selectedItem.customer_email}
+                        </Typography>
+                      )
                     )}
                   </Box>
                 </Grid>
@@ -445,14 +685,7 @@ export default function DriverTask() {
                   </Typography>
                   <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
                     <Typography variant="body2">
-                      {itemType === 'pickup' && selectedItem.procurement 
-                        ? selectedItem.vendor_address 
-                        : selectedItem.customer_address}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {itemType === 'pickup' && selectedItem.procurement 
-                        ? selectedItem.vendor_city 
-                        : selectedItem.customer_city}
+                      {formatAddress(selectedItem)}
                     </Typography>
                   </Box>
                 </Grid>
@@ -464,21 +697,32 @@ export default function DriverTask() {
                     Products
                   </Typography>
                   <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
-                    {parseItems(selectedItem.items).map((item, index) => (
-                      <Box key={index} sx={{ mb: 1, pb: 1, borderBottom: index < parseItems(selectedItem.items).length - 1 ? '1px solid #ddd' : 'none' }}>
-                        <Typography variant="body2" fontWeight="bold">
-                          {item.product_name || item.name || `Product ${index + 1}`}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Quantity: {item.quantity || 1} kg
-                        </Typography>
-                        {item.unit_price && (
-                          <Typography variant="body2" color="text.secondary">
-                            Price: ₹{item.unit_price}/kg
+                    {parseItems(selectedItem.items).length > 0 ? (
+                      parseItems(selectedItem.items).map((item, index) => (
+                        <Box key={index} sx={{ mb: 1, pb: 1, borderBottom: index < parseItems(selectedItem.items).length - 1 ? '1px solid #ddd' : 'none' }}>
+                          <Typography variant="body2" fontWeight="bold">
+                            {item.product_name || getProductName(item.product_id) || `Product ${index + 1}`}
                           </Typography>
-                        )}
-                      </Box>
-                    ))}
+                          <Typography variant="body2" color="text.secondary">
+                            Quantity: {item.quantity || 1} kg
+                          </Typography>
+                          {item.unit_price > 0 && (
+                            <Typography variant="body2" color="text.secondary">
+                              Price: ₹{item.unit_price}/kg
+                            </Typography>
+                          )}
+                          {item.quantity && item.unit_price && (
+                            <Typography variant="body2" color="success.main" fontWeight="bold">
+                              Total: ₹{(item.quantity * item.unit_price).toFixed(2)}
+                            </Typography>
+                          )}
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No product details available
+                      </Typography>
+                    )}
                   </Box>
                 </Grid>
 
@@ -492,7 +736,7 @@ export default function DriverTask() {
                       <Grid item xs={6}>
                         <Typography variant="body2" color="text.secondary">Order Date</Typography>
                         <Typography variant="body2" fontWeight="bold">
-                          {selectedItem.order_date || 'Not specified'}
+                          {selectedItem.order_date || selectedItem.order_details?.order_date || 'Not specified'}
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
@@ -500,14 +744,22 @@ export default function DriverTask() {
                           {itemType === 'pickup' ? 'Pickup Time' : 'Delivery Time'}
                         </Typography>
                         <Typography variant="body2" fontWeight="bold">
-                          {selectedItem.time || selectedItem.delivery_time || 'Not specified'}
+                          {selectedItem.time || selectedItem.delivery_time || selectedItem.order_details?.delivery_time || 'Not specified'}
                         </Typography>
                       </Grid>
                       {selectedItem.total_amount > 0 && (
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                           <Typography variant="body2" color="text.secondary">Total Amount</Typography>
                           <Typography variant="body2" fontWeight="bold" color="success.main">
-                            ₹{selectedItem.total_amount}
+                            ₹{selectedItem.total_amount || selectedItem.order_details?.total_amount || 0}
+                          </Typography>
+                        </Grid>
+                      )}
+                      {selectedItem.order_id && (
+                        <Grid item xs={6}>
+                          <Typography variant="body2" color="text.secondary">Order ID</Typography>
+                          <Typography variant="body2" fontWeight="bold">
+                            #{selectedItem.order_id}
                           </Typography>
                         </Grid>
                       )}
@@ -688,7 +940,7 @@ export default function DriverTask() {
                       </Grid>
                       <Typography variant="body2">{pickup.CustomerProfile?.institution_name || pickup.location || 'Unknown Location'}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {pickup.address || 'Address not available'}, {pickup.city || ''}
+                        {formatAddress(pickup)}
                       </Typography>
                       <Typography variant="body2">
                         {pickup.CustomerProfile?.deliveryNo ? `Delivery No: ${pickup.CustomerProfile.deliveryNo}` : ''}
