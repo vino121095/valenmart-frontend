@@ -185,15 +185,15 @@ export default function DriverTask() {
             oid: order.procurement_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
             type: 'Pickup',
             location: order.vendor_name || order.vendor?.name || vendorDetails?.contact_person || 'Vendor Location',
-            address: `${order.vendor_address || order.address || vendorDetails?.address || 'Address not available'}, ${order.vendor_city || order.city || vendorDetails?.city || ''}`,
+            address: `${order.vendor_address || order.vendor.address || vendorDetails?.address || 'Address not available'}, ${order.vendor_city || order.city || vendorDetails?.city || ''}`,
             time: order.pickup_time || order.expected_delivery_date || order.order_date || 'Time not set',
             status: order.status || 'Approved',
             // Add detailed information
             vendor_name: order.vendor_name || order.vendor?.name || vendorDetails?.data.contact_person || 'Unknown Vendor',
-            vendor_address: order.vendor_address || order.address || vendorDetails?.data.address || 'Address not available',
-            vendor_city: order.vendor_city || order.city || vendorDetails?.data.city || '',
-            vendor_state: vendorDetails?.state || '',
-            vendor_pincode: vendorDetails?.data.pincode || '',
+            vendor_address: order.vendor_address || order.vendor.address || vendorDetails?.data.address || 'Address not available',
+            vendor_city: order.vendor_city || order.vendor.city || vendorDetails?.data.city || '',
+            vendor_state: vendorDetails?.state || order.vendor.state || '',
+            vendor_pincode: vendorDetails?.data.pincode || order.vendor.pincode || '',
             vendor_phone: order.vendor_phone || order.contact_phone || vendorDetails?.data.phone || 'Not provided',
             vendor_email: vendorDetails?.data.email || 'Not provided',
             vendor_id: order.vendor_id,
@@ -217,13 +217,13 @@ export default function DriverTask() {
         oid: order.oid || order.order_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
         type: 'Pickup',
         location: order.CustomerProfile?.institution_name || order.location || 'Unknown Location',
-        address: `${order.address || 'Address not available'}, ${order.city || ''}`,
+        address: `${order.vendor.address || 'Address not available'}, ${order.city || ''}`,
         time: order.time || order.delivery_time || 'Time not set',
         status: order.status || 'pending',
         // Add detailed information
         customer_name: order.CustomerProfile?.contact_person_name || order.customer_name || 'Unknown Customer',
-        customer_address: order.address || 'Address not available',
-        customer_city: order.city || '',
+        customer_address: order.vendor.address || 'Address not available',
+        customer_city: order.vendor.city || '',
         customer_phone: order.CustomerProfile?.contact_person_phone || order.contact_phone || 'Not provided',
         customer_email: order.CustomerProfile?.contact_person_email || order.email || 'Not provided',
         items: order.items || [],
@@ -424,18 +424,19 @@ export default function DriverTask() {
     console.log('Item type:', itemType);
     console.log('Is procurement:', item?.procurement);
     
-    if (itemType === 'pickup' && item?.procurement) {
+    if (item?.procurement) {
       // For procurement pickups, show vendor address
       const address = item.vendor_address || item.address || 'Address not available';
       const city = item.vendor_city || item.city || '';
       const state = item.vendor_state || item.state || '';
       const pincode = item.vendor_pincode || item.pincode || '';
       
+
       let formattedAddress = address;
       if (city) formattedAddress += `, ${city}`;
       if (state) formattedAddress += `, ${state}`;
       if (pincode) formattedAddress += ` - ${pincode}`;
-      
+      console.log("DEBUG values:",  address, city, state, pincode );
       console.log('Vendor address formatted:', formattedAddress);
       return formattedAddress;
     } else {
@@ -1001,7 +1002,7 @@ export default function DriverTask() {
                         {delivery.CustomerProfile?.institution_name || delivery.location || 'Unknown Location'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {delivery.address || 'Address not available'}, {delivery.city || ''}
+                        {formatAddress(delivery)}
                       </Typography>
                       <Typography variant="body2">
                         {delivery.CustomerProfile?.deliveryNo ? `Delivery No: ${delivery.CustomerProfile.deliveryNo}` : ''}

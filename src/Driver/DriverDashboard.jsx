@@ -198,8 +198,7 @@ export default function DriverDashboard() {
         id: order.oid || order.order_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
         type: 'Delivery',
         location: order.CustomerProfile?.institution_name || 'Unknown Location',
-        address: `${order.address || 'Address not available'}, ${order.city || ''}`,
-        distance: `${Math.floor(Math.random() * 10) + 1} km`,
+        address: `${order.address || 'Address not available'}, ${order.city || ''}, ${order.state || ''}, ${order.postal_code || ''}`,
         time: order.delivery_time || 'Time not set',
         action:
           order.status === 'Waiting for Approval'
@@ -215,8 +214,7 @@ export default function DriverDashboard() {
         id: order.procurement_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
         type: 'Pickup',
         location: order.vendor_name || order.vendor?.name || 'Vendor Location',
-        address: `${order.vendor_address || order.address || 'Address not available'}, ${order.vendor_city || order.city || ''}`,
-        distance: `${Math.floor(Math.random() * 10) + 1} km`,
+        address: `${order.vendor.address || order.address || 'Address not available'}, ${order.vendor.city || order.city || ''}, ${order.vendor.state || order.city || ''}, ${order.vendor.pincode || order.city || ''}`,
         time: order.pickup_time || order.expected_delivery_date || order.order_date || 'Time not set',
         action: 'Start Pickup',
         status: order.status || 'Approved'
@@ -412,7 +410,7 @@ export default function DriverDashboard() {
                   <Typography variant="subtitle2">Order {task.id} - {task.type}</Typography>
                   <Typography variant="body2">{task.location}</Typography>
                   <Typography variant="body2" color="text.secondary">{formatAddress(task)}</Typography>
-                  <Typography variant="body2" color="text.secondary">{task.distance} away | {task.time}</Typography>
+                  <Typography variant="body2" color="text.secondary">{task.order_date}</Typography>
                   <Button
                     variant="contained"
                     size="small"
