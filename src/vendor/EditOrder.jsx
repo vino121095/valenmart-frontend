@@ -459,7 +459,7 @@ const EditOrder = () => {
         status: 'Updated'
       };
 
-      console.log('Updating procurement with payload:', updatePayload);
+      // console.log('Updating procurement with payload:', updatePayload);
 
       const response = await fetch(`${baseurl}/api/procurement/update/${procurementId}`, {
         method: 'PUT',

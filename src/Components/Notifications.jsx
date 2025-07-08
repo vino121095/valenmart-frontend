@@ -57,7 +57,7 @@ const Notifications = ({customerId}) => {
         }
 
         const data = await response.json();
-        console.log('Raw API Response:', data);
+        // console.log('Raw API Response:', data);
 
         // Handle the notifications array from the response
         if (data && data.notifications && Array.isArray(data.notifications)) {
@@ -179,7 +179,7 @@ const Notifications = ({customerId}) => {
           </Box>
         ) : (
           notifications.map((notification, index) => {
-            console.log('Rendering notification:', notification);
+            // console.log('Rendering notification:', notification);
             return (
               <Card 
                 key={notification.nid || index}

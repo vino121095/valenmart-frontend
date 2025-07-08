@@ -101,7 +101,7 @@ function InvoicesPage() {
 
         const fetchOrderDetails = async () => {
             try {
-                const res = await fetch(`http://localhost:8000/api/order/${orderId}`);
+                const res = await fetch(`${baseurl}/api/order/${orderId}`);
                 const data = await res.json();
                 setOrderDetails(data.data);
             } catch (err) {
@@ -111,7 +111,7 @@ function InvoicesPage() {
 
         const fetchOrderItems = async () => {
             try {
-                const res = await fetch('http://localhost:8000/api/order-items/all');
+                const res = await fetch(`${baseurl}/api/order-items/all`);
                 const data = await res.json();
                 const filteredItems = data.data.filter(
                     (item) => item.order_id === Number(orderId)

@@ -74,7 +74,7 @@ const ViewAllProducts = () => {
         setLoading(true);
         
         try {
-            console.log('Adding to cart:', { product, quantity }); // Debug log
+            // console.log('Adding to cart:', { product, quantity }); // Debug log
             
             const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
             
@@ -90,7 +90,7 @@ const ViewAllProducts = () => {
                 image: product.image,
             };
             
-            console.log('Request body:', requestBody); // Debug log
+            // console.log('Request body:', requestBody); // Debug log
             
             const headers = {
                 'Content-Type': 'application/json',
@@ -106,10 +106,10 @@ const ViewAllProducts = () => {
                 body: JSON.stringify(requestBody),
             });
 
-            console.log('Response status:', response.status); // Debug log
+            // console.log('Response status:', response.status); // Debug log
             
             const data = await response.json();
-            console.log('Response data:', data); // Debug log
+            // console.log('Response data:', data); // Debug log
 
             if (response.ok) {
                 showSnackbar(`${product.name} added to cart successfully!`, 'success');

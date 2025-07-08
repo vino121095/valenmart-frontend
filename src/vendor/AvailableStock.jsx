@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -16,12 +17,14 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import VendorFooter from '../vendorfooter';
+import baseurl from '../baseurl/ApiService';
 
 const AvailableStock = () => {
   const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/product/all')
+    fetch(`${baseurl}/api/product/all`)
       .then((response) => response.json())
       .then((res) => {
         setProducts(Array.isArray(res.data) ? res.data : []);
@@ -52,6 +55,7 @@ const AvailableStock = () => {
               borderRadius: '50%',
               p: 1,
             }}
+            onClick={() => navigate(-1)}
           >
             <ArrowBackIcon />
           </IconButton>

@@ -136,7 +136,7 @@ const OrderCard = ({ order, orderItems }) => {
   };
 
   const handleTrackOrder = () => {
-    console.log('Navigating to order status with order:', order);
+    // console.log('Navigating to order status with order:', order);
     navigate('/order-status', {
       state: {
         orderId: order.oid,

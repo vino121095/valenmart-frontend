@@ -262,10 +262,10 @@ const AddProduct = () => {
       const authToken = localStorage.getItem('token');
       const vendorId = localStorage.getItem('vendor_id');
 
-      console.log('Debug - LocalStorage contents:');
-      console.log('userData:', userData);
-      console.log('authToken:', authToken);
-      console.log('vendorId:', vendorId);
+      // console.log('Debug - LocalStorage contents:');
+      // console.log('userData:', userData);
+      // console.log('authToken:', authToken);
+      // console.log('vendorId:', vendorId);
 
       if (!vendorId) {
         setError('Vendor ID not found. Please login again.');
@@ -340,31 +340,31 @@ const AddProduct = () => {
         formData.append('procurement_product_image', productList[0].image);
       }
 
-      console.log('Submitting to API...');
-      console.log('Base URL from config:', baseurl);
-      console.log('Request details:', {
-        vendorId,
-        totalItems,
-        avgPrice: avgPricePerUnit.toFixed(2),
-        category,
-        type: mostCommonType,
-        authToken: authToken ? 'Present' : 'Missing'
-      });
+      // console.log('Submitting to API...');
+      // console.log('Base URL from config:', baseurl);
+      // console.log('Request details:', {
+      //   vendorId,
+      //   totalItems,
+      //   avgPrice: avgPricePerUnit.toFixed(2),
+      //   category,
+      //   type: mostCommonType,
+      //   authToken: authToken ? 'Present' : 'Missing'
+      // });
 
-      // Debug: Log all FormData entries
-      console.log('FormData contents:');
-      for (let pair of formData.entries()) {
-        if (pair[1] instanceof File) {
-          console.log(pair[0], `File: ${pair[1].name} (${pair[1].size} bytes)`);
-        } else {
-          console.log(pair[0], pair[1]);
-        }
-      }
+      // // Debug: Log all FormData entries
+      // console.log('FormData contents:');
+      // for (let pair of formData.entries()) {
+      //   if (pair[1] instanceof File) {
+      //     console.log(pair[0], `File: ${pair[1].name} (${pair[1].size} bytes)`);
+      //   } else {
+      //     console.log(pair[0], pair[1]);
+      //   }
+      // }
 
       // Use the correct API endpoint (same as admin side)
       const apiEndpoint = `${baseurl}/api/procurement/create`;
       
-      console.log('Submitting to:', apiEndpoint);
+      // console.log('Submitting to:', apiEndpoint);
 
       const response = await fetch(apiEndpoint, {
         method: 'POST',
@@ -374,11 +374,11 @@ const AddProduct = () => {
         body: formData,
       });
 
-      console.log('Response status:', response.status);
+      // console.log('Response status:', response.status);
 
       const responseText = await response.text();
-      console.log('Response status:', response.status);
-      console.log('Response text:', responseText);
+      // console.log('Response status:', response.status);
+      // console.log('Response text:', responseText);
 
       let data;
       try {
@@ -401,7 +401,7 @@ const AddProduct = () => {
         }
       }
 
-      console.log('Procurement request created successfully:', data);
+      // console.log('Procurement request created successfully:', data);
 
       // Clear products and navigate
       setProductList([]);

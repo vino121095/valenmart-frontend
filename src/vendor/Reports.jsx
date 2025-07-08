@@ -50,7 +50,7 @@ const Reports = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/procurement/all');
+        const response = await fetch(`${baseurl}/api/procurement/all`);
         const data = await response.json();
         setProcurements(data.data);
         setLoading(false);

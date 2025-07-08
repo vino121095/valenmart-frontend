@@ -75,7 +75,7 @@ export default function DriverLog() {
         );
 
         // Log assigned orders for debugging
-        console.log('Assigned Orders:', assignedOrders);
+        // console.log('Assigned Orders:', assignedOrders);
 
         // Filter procurement pickups assigned to this driver
         const assignedProcurements = procurementArray.filter(order =>

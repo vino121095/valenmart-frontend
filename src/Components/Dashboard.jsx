@@ -87,7 +87,7 @@ function Dashboard() {
                 quantity: parseInt(item.quantity) || 0,
                 unit: item.Product?.unit || 'units'
               };
-              console.log('Product Details:', productDetails);
+              // console.log('Product Details:', productDetails);
 
               if (!productCounts[productId]) {
                 productCounts[productId] = {

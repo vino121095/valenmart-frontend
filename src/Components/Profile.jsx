@@ -72,7 +72,7 @@ const Profile = () => {
         });
         if (!response.ok) throw new Error('Failed to fetch profile details');
         const responseData = await response.json();
-        console.log('Fetched profile data for Profile page:', responseData);
+        // console.log('Fetched profile data for Profile page:', responseData);
 
         // Check if responseData.data exists and is an object before accessing
         if (responseData && responseData.data) {
@@ -119,7 +119,7 @@ const Profile = () => {
     setSignOutDialogOpen(false);
     window.location.href = '/login';
     
-    console.log('User signed out successfully');
+    // console.log('User signed out successfully');
 };
 
   const handleSignOutCancel = () => {
@@ -159,7 +159,7 @@ const Profile = () => {
           return;
       }
 
-      console.log('Sending forgot password request for email:', userEmail); // Log the email being sent
+      // console.log('Sending forgot password request for email:', userEmail); // Log the email being sent
 
       const response = await fetch(`${baseurl}/api/forgot-password`, {
         method: 'POST',

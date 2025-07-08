@@ -118,14 +118,14 @@ const VDashboard = () => {
     setPickupLoading(prev => ({ ...prev, [pickup.procurement_id]: true }));
     
     try {
-      console.log('Starting pickup for order:', pickup.procurement_id);
-      console.log('API URL:', `${baseurl}/api/procurement/update/${pickup.procurement_id}`);
+      // console.log('Starting pickup for order:', pickup.procurement_id);
+      // console.log('API URL:', `${baseurl}/api/procurement/update/${pickup.procurement_id}`);
       
       const token = localStorage.getItem('token');
-      console.log('Token exists:', !!token);
+      // console.log('Token exists:', !!token);
       
       const requestBody = { status: 'Picked' };
-      console.log('Request body:', requestBody);
+      // console.log('Request body:', requestBody);
       
       const response = await fetch(`${baseurl}/api/procurement/update/${pickup.procurement_id}`, {
         method: 'PUT',
@@ -136,8 +136,8 @@ const VDashboard = () => {
         body: JSON.stringify(requestBody),
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
+      // console.log('Response status:', response.status);
+      // console.log('Response ok:', response.ok);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -146,7 +146,7 @@ const VDashboard = () => {
       }
 
       const result = await response.json();
-      console.log('Success response:', result);
+      // console.log('Success response:', result);
 
       // Update local state immediately
       setStocks(prev => prev.map(order => 

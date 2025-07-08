@@ -107,11 +107,11 @@ const ShoppingCart = () => {
         headers: headers,
       });
 
-      console.log('Cart fetch response status:', response.status);
+      // console.log('Cart fetch response status:', response.status);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Cart data:', data);
+        // console.log('Cart data:', data);
 
         if (data && Array.isArray(data)) {
           const formattedItems = data.map(item => ({

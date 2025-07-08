@@ -26,7 +26,7 @@ const OrderConfirmation = () => {
     };
 
     const handleTrackOrder = () => {
-        console.log('Navigating to order status with order:', orderDetails);
+        // console.log('Navigating to order status with order:', orderDetails);
         navigate('/order-status', {
             state: {
                 orderId: orderDetails?.orderId,

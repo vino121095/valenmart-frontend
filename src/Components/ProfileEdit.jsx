@@ -47,11 +47,11 @@ const ProfileEdit = () => {
         });
         if (!response.ok) throw new Error('Failed to fetch profile');
         const responseData = await response.json();
-        console.log('Fetched responseData:', responseData);
+        // console.log('Fetched responseData:', responseData);
         
         // Check if responseData.data exists and is an object before accessing
         if (responseData && responseData.data) {
-          console.log('Accessing data from responseData.data:', responseData.data);
+          // console.log('Accessing data from responseData.data:', responseData.data);
           const data = responseData.data;
           // Map API response keys to state keys
           setProfileData(prev => ({
@@ -102,7 +102,7 @@ const ProfileEdit = () => {
     setError('');
     setSnackbarOpen(false); // Close previous snackbar
 
-    console.log('Profile data before sending:', profileData); // Log state before creating FormData
+    // console.log('Profile data before sending:', profileData); // Log state before creating FormData
 
     const formData = new FormData();
 
@@ -140,7 +140,7 @@ const ProfileEdit = () => {
 
       // Handle success
       const result = await response.json();
-      console.log('Profile updated successfully:', result);
+      // console.log('Profile updated successfully:', result);
       setError(''); // Clear any previous errors on success
       setSnackbarMessage('Profile updated successfully!');
       setSnackbarSeverity('success');

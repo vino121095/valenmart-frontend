@@ -86,7 +86,7 @@ const Products = () => {
         setLoading(true);
         
         try {
-            console.log('Adding to cart:', { product, quantity }); // Debug log
+            // console.log('Adding to cart:', { product, quantity }); // Debug log
             
             // Get authentication token if required
             const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
@@ -103,7 +103,7 @@ const Products = () => {
                 image: product.image,
             };
             
-            console.log('Request body:', requestBody); // Debug log
+            // console.log('Request body:', requestBody); // Debug log
             
             const headers = {
                 'Content-Type': 'application/json',
@@ -120,10 +120,10 @@ const Products = () => {
                 body: JSON.stringify(requestBody),
             });
 
-            console.log('Response status:', response.status); // Debug log
+            // console.log('Response status:', response.status); // Debug log
             
             const data = await response.json();
-            console.log('Response data:', data); // Debug log
+            // console.log('Response data:', data); // Debug log
 
             if (response.ok) {
                 // Show success message

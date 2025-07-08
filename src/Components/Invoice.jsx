@@ -280,7 +280,7 @@ const Invoice = () => {
                         navigate(`/Invoicepage/${order.oid}`);
                       } else {
                         // Handle pay logic here instead of navigating
-                        console.log("Handle payment here");
+                        // console.log("Handle payment here");
                       }
                     }}
                   >

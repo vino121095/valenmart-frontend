@@ -33,7 +33,7 @@ const OrderStatus = () => {
     useEffect(() => {
         const fetchOrderDetails = async () => {
             if (!orderId) {
-                console.log('No orderId provided');
+                // console.log('No orderId provided');
                 setError('No order ID provided');
                 setLoading(false);
                 return;
@@ -41,7 +41,7 @@ const OrderStatus = () => {
 
             try {
                 const authToken = localStorage.getItem('token');
-                console.log('Fetching order details for ID:', orderId);
+                // console.log('Fetching order details for ID:', orderId);
 
                 const response = await fetch(`${baseurl}/api/order/${orderId}`, {
                     method: 'GET',
@@ -60,7 +60,7 @@ const OrderStatus = () => {
                 
                 // Check if the response has data property
                 const data = responseData.data || responseData;
-                console.log('Order Details:', data);
+                // console.log('Order Details:', data);
                 
                 if (!data) {
                     throw new Error('No order data received');
@@ -117,7 +117,7 @@ const OrderStatus = () => {
 
     // Update steps based on current order status
     const currentStep = orderDetails ? getCurrentStep(orderDetails.status) : getCurrentStep(initialStatus);
-    console.log('Current Step:', currentStep, 'Order Status:', orderDetails?.status || initialStatus);
+    // console.log('Current Step:', currentStep, 'Order Status:', orderDetails?.status || initialStatus);
 
     steps.forEach((step, index) => {
         step.completed = index <= currentStep;

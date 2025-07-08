@@ -39,7 +39,7 @@ const Pickupdetails = () => {
 
   const handleConfirmReady = () => {
     setOpenDialog(false);
-    console.log('Items marked as ready');
+    // console.log('Items marked as ready');
     // You can add success snackbar or redirection here
   };
 

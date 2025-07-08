@@ -606,7 +606,7 @@ const ProcurementOrder = () => {
     fetch(`${baseurl}/api/product/all`)
       .then(res => res.json())
       .then(data => {
-        console.log('Fetched products:', data);
+        // console.log('Fetched products:', data);
         const map = {};
         (data.data || data).forEach(prod => {
           map[prod.pid || prod.product_id] = prod.product_name || prod.name || prod.product_title || prod.title;

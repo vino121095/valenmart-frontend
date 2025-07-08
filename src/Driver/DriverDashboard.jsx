@@ -67,8 +67,8 @@ export default function DriverDashboard() {
       }
 
       const authToken = localStorage.getItem('token');
-      console.log('Driver ID:', driverId);
-      console.log('Auth Token:', authToken ? 'Present' : 'Missing');
+      // console.log('Driver ID:', driverId);
+      // console.log('Auth Token:', authToken ? 'Present' : 'Missing');
 
       const response = await fetch(`${baseurl}/api/driver-details/${driverId}`, {
         method: 'GET',
@@ -78,14 +78,14 @@ export default function DriverDashboard() {
         }
       });
 
-      console.log('Response status:', response.status);
+      // console.log('Response status:', response.status);
 
       if (!response.ok) {
         throw new Error('Failed to fetch driver details');
       }
 
       const data = await response.json();
-      console.log('Driver API Response:', data);
+      // console.log('Driver API Response:', data);
 
       // Extract driver information
       const driverData = data.data || data;
@@ -177,7 +177,7 @@ export default function DriverDashboard() {
       }
 
       // DEBUG: Log procurement data
-      console.log('Procurement API Data:', procurementArray);
+      // console.log('Procurement API Data:', procurementArray);
 
       // Filter regular deliveries assigned to this driver
       const assignedOrders = ordersArray.filter(order =>
@@ -191,7 +191,7 @@ export default function DriverDashboard() {
       );
 
       // DEBUG: Log assigned procurements
-      console.log('Assigned Procurements:', assignedProcurements);
+      // console.log('Assigned Procurements:', assignedProcurements);
 
       // Transform deliveries
       const transformedOrders = assignedOrders.map(order => ({

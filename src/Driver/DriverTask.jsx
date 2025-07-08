@@ -60,7 +60,7 @@ export default function DriverTask() {
       }
       
       const data = await response.json();
-      console.log('Vendor details:', data);
+      // console.log('Vendor details:', data);
       return data;
     } catch (error) {
       console.error('Error fetching vendor details:', error);
@@ -86,7 +86,7 @@ export default function DriverTask() {
       }
       
       const data = await response.json();
-      console.log('Order items:', data);
+      // console.log('Order items:', data);
       return data;
     } catch (error) {
       console.error('Error fetching order items:', error);
@@ -141,7 +141,7 @@ export default function DriverTask() {
       }
 
       // DEBUG: Log procurement data
-      console.log('Procurement API Data:', procurementArray);
+      // console.log('Procurement API Data:', procurementArray);
 
       // Filter for this driver (regular orders)
       const assignedOrders = ordersArray.filter(order =>
@@ -155,7 +155,7 @@ export default function DriverTask() {
       );
 
       // DEBUG: Log assigned procurements
-      console.log('Assigned Procurements:', assignedProcurements);
+      // console.log('Assigned Procurements:', assignedProcurements);
 
       // Classify as pickups or deliveries (regular orders)
       const pickupOrders = assignedOrders.filter(order =>
@@ -173,11 +173,11 @@ export default function DriverTask() {
           // Fetch vendor details if vendor_id is available
           let vendorDetails = null;
           if (order.vendor_id) {
-            console.log('Fetching vendor details for vendor_id:', order.vendor_id);
+            // console.log('Fetching vendor details for vendor_id:', order.vendor_id);
             vendorDetails = await fetchVendorDetails(order.vendor_id);
-            console.log('Vendor details fetched:', vendorDetails);
+            // console.log('Vendor details fetched:', vendorDetails);
           } else {
-            console.log('No vendor_id found for order:', order.procurement_id);
+            // console.log('No vendor_id found for order:', order.procurement_id);
           }
 
           const transformedPickup = {
@@ -206,7 +206,7 @@ export default function DriverTask() {
             raw_items: order.items,
           };
 
-          console.log('Transformed procurement pickup:', transformedPickup);
+          // console.log('Transformed procurement pickup:', transformedPickup);
           return transformedPickup;
         })
       );
@@ -237,7 +237,7 @@ export default function DriverTask() {
 
       // Fetch all order items once
       const orderItemsData = await fetchOrderItems();
-      console.log('All order items fetched:', orderItemsData);
+      // console.log('All order items fetched:', orderItemsData);
 
       // Transform regular deliveries with order items
       const transformedDeliveries = deliveryOrders.map((order) => {
@@ -247,7 +247,7 @@ export default function DriverTask() {
           orderItems = orderItemsData.data.filter(item => 
             String(item.order_id) === String(order.oid || order.order_id)
           );
-          console.log(`Order items for order ${order.oid || order.order_id}:`, orderItems);
+          // console.log(`Order items for order ${order.oid || order.order_id}:`, orderItems);
         }
 
         return {
@@ -297,16 +297,16 @@ export default function DriverTask() {
 
   // Detail modal handlers
   const handleOpenDetailModal = (item, type) => {
-    console.log('Opening detail modal for:', item);
-    console.log('Item type:', type);
-    console.log('Is procurement:', item.procurement);
-    console.log('Vendor details:', {
-      vendor_name: item.vendor_name,
-      vendor_phone: item.vendor_phone,
-      vendor_address: item.vendor_address,
-      vendor_city: item.vendor_city,
-      vendor_id: item.vendor_id
-    });
+    // console.log('Opening detail modal for:', item);
+    // console.log('Item type:', type);
+    // console.log('Is procurement:', item.procurement);
+    // console.log('Vendor details:', {
+    //   vendor_name: item.vendor_name,
+    //   vendor_phone: item.vendor_phone,
+    //   vendor_address: item.vendor_address,
+    //   vendor_city: item.vendor_city,
+    //   vendor_id: item.vendor_id
+    // });
     setSelectedItem(item);
     setItemType(type);
     setDetailModalOpen(true);
@@ -324,7 +324,7 @@ export default function DriverTask() {
     
     // For deliveries, try to use order_items first if available
     if (itemType === 'delivery' && selectedItem?.order_items && selectedItem.order_items.length > 0) {
-      console.log('Using order_items for delivery:', selectedItem.order_items);
+      // console.log('Using order_items for delivery:', selectedItem.order_items);
       
       return selectedItem.order_items.map(item => ({
         product_name: item.product_name || item.name || getProductName(item.product_id) || 'Unknown Product',
@@ -337,14 +337,14 @@ export default function DriverTask() {
     // Try to use raw_items if available (for better data preservation)
     const itemsToParse = selectedItem?.raw_items || items;
     
-    console.log('Parsing items:', itemsToParse);
+    // console.log('Parsing items:', itemsToParse);
     
     // If items is a string, try to parse it
     if (typeof itemsToParse === 'string') {
       try {
         // Try to parse as JSON
         const parsed = JSON.parse(itemsToParse);
-        console.log('Parsed JSON items:', parsed);
+        // console.log('Parsed JSON items:', parsed);
         
         if (Array.isArray(parsed)) {
           return parsed.map(item => ({
@@ -362,7 +362,7 @@ export default function DriverTask() {
           }];
         }
       } catch (e) {
-        console.log('Failed to parse JSON, treating as string:', itemsToParse);
+        // console.log('Failed to parse JSON, treating as string:', itemsToParse);
         // If JSON parsing fails, treat as a simple string
         return [{
           product_name: itemsToParse,
@@ -393,7 +393,7 @@ export default function DriverTask() {
       }];
     }
     
-    console.log('No items found or unrecognized format');
+    // console.log('No items found or unrecognized format');
     return [];
   };
 
@@ -420,9 +420,9 @@ export default function DriverTask() {
 
   // Helper function to format address
   const formatAddress = (item) => {
-    console.log('Formatting address for item:', item);
-    console.log('Item type:', itemType);
-    console.log('Is procurement:', item?.procurement);
+    // console.log('Formatting address for item:', item);
+    // console.log('Item type:', itemType);
+    // console.log('Is procurement:', item?.procurement);
     
     if (item?.procurement) {
       // For procurement pickups, show vendor address
@@ -436,8 +436,8 @@ export default function DriverTask() {
       if (city) formattedAddress += `, ${city}`;
       if (state) formattedAddress += `, ${state}`;
       if (pincode) formattedAddress += ` - ${pincode}`;
-      console.log("DEBUG values:",  address, city, state, pincode );
-      console.log('Vendor address formatted:', formattedAddress);
+      // console.log("DEBUG values:",  address, city, state, pincode );
+      // console.log('Vendor address formatted:', formattedAddress);
       return formattedAddress;
     } else {
       // For regular pickups and deliveries, show customer address
@@ -451,7 +451,7 @@ export default function DriverTask() {
       if (state) formattedAddress += `, ${state}`;
       if (pincode) formattedAddress += ` - ${pincode}`;
       
-      console.log('Customer address formatted:', formattedAddress);
+      // console.log('Customer address formatted:', formattedAddress);
       return formattedAddress;
     }
   };
@@ -484,7 +484,7 @@ export default function DriverTask() {
       if (deliveryImage) {
         formData.append('delivery_image', deliveryImage);
       }
-      console.log(selectedDelivery)
+      // console.log(selectedDelivery)
       const response = await fetch(`${baseurl}/api/delivery/mark-delivered/${selectedDelivery.oid || selectedDelivery.order_id}`, {
         method: 'PUT',
         headers: {
