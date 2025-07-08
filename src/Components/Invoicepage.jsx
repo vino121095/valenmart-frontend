@@ -22,6 +22,7 @@ import Footer from '../Footer';
 import Header from '../Header';
 import baseurl from '../baseurl/ApiService';
 import { useAuth } from '../App';
+import velaanLogo from '../assets/velaanLogo.png';
 
 function InvoicesPage() {
     const { id: orderId } = useParams();
@@ -35,6 +36,7 @@ function InvoicesPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const pdfRef = useRef();
+    const [exportMode, setExportMode] = useState(false);
 
     const borderStyle = '1px solid #000';
     const noBorderStyle = 'none';
@@ -129,36 +131,53 @@ function InvoicesPage() {
     }, [orderId, navigate]);
 
     const exportToPDF = () => {
-        const input = pdfRef.current;
-        
-        // Hide header and footer before capturing
-        const header = document.querySelector('header');
-        const footer = document.querySelector('footer');
-        if (header) header.style.visibility = 'hidden';
-        if (footer) footer.style.visibility = 'hidden';
-
-        html2canvas(input, {
-            scale: 2,
-            logging: false,
-            useCORS: true,
-            allowTaint: true,
-            scrollY: -window.scrollY,
-            windowWidth: document.documentElement.offsetWidth,
-            windowHeight: document.documentElement.offsetHeight
-        }).then((canvas) => {
-            const imgData = canvas.toDataURL('image/png');
+        setExportMode(true);
+        setTimeout(() => {
+            const input = pdfRef.current;
             const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgProps = pdf.getImageProperties(imgData);
             const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`invoice-${orderId}.pdf`);
+            // Hide header and footer before capturing
+            const header = document.querySelector('header');
+            const footer = document.querySelector('footer');
+            if (header) header.style.visibility = 'hidden';
+            if (footer) footer.style.visibility = 'hidden';
 
-            // Restore header and footer visibility
-            if (header) header.style.visibility = 'visible';
-            if (footer) footer.style.visibility = 'visible';
-        });
+            html2canvas(input, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                scrollY: -window.scrollY,
+                width: 800,
+                windowWidth: 800
+            }).then((canvas) => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgProps = pdf.getImageProperties(imgData);
+
+                const imgWidth = pdfWidth;
+                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+                let finalImgWidth = imgWidth;
+                let finalImgHeight = imgHeight;
+
+                if (imgHeight > pdfHeight) {
+                    finalImgHeight = pdfHeight;
+                    finalImgWidth = (imgProps.width * pdfHeight) / imgProps.height;
+                }
+
+                const x = (pdfWidth - finalImgWidth) / 2;
+                const y = (pdfHeight - finalImgHeight) / 2;
+
+                pdf.addImage(imgData, 'PNG', x, y, finalImgWidth, finalImgHeight);
+
+                if (header) header.style.visibility = 'visible';
+                if (footer) footer.style.visibility = 'visible';
+
+                pdf.save(`invoice-${orderId}.pdf`);
+                setExportMode(false);
+            });
+        }, 100);
     };
 
     // Number to words converter functions...
@@ -269,22 +288,23 @@ function InvoicesPage() {
     return (
         <Box sx={{ pb: 8 }}>
             <Header />
-            <Container maxWidth={isMobile ? false : 'lg'} sx={{ px: isMobile ? 1 : 3 }}>
+            <Container maxWidth={false} sx={{ px: exportMode ? 0 : isMobile ? 1 : 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                    {/* <Button
+                    <Button
                         variant="contained"
                         onClick={exportToPDF}
                         sx={{ backgroundColor: '#10B981', '&:hover': { backgroundColor: '#0D9F6E' } }}
                         size={isMobile ? 'small' : 'medium'}
                     >
                         Export as PDF
-                    </Button> */}
+                    </Button>
                 </Box>
 
                 {/* Invoice content to be exported to PDF */}
                 <Box ref={pdfRef}>
                     <Paper sx={{
-                        maxWidth: '900px',
+                        width: exportMode ? '800px' : '100%',
+                        maxWidth: exportMode ? '800px' : '1200px',
                         margin: '20px auto',
                         border: borderStyle,
                         p: 0,
@@ -307,7 +327,7 @@ function InvoicesPage() {
                                 justifyContent: 'center',
                                 borderBottom: isMobile ? borderStyle : noBorderStyle
                             }}>
-                                <img src="/velaan-logo.png" alt="Velaan Mart" style={{ maxWidth: '80px', height: 'auto' }} />
+                                <img src={velaanLogo} alt="Velaan Mart" style={{ maxWidth: '90px', height: 'auto' }} />
                             </Box>
                             <Box sx={{
                                 flex: 1,
