@@ -348,7 +348,7 @@ function Dashboard() {
                 sx={{ width: "100%", maxWidth: 400 }}
               >
                 <Typography sx={{ fontSize: "16px" }}>
-                  You have <strong style={{ color: "#ED8936" }}>2 pending invoices</strong> to review
+                  You have <strong style={{ color: "#ED8936" }}>invoices</strong> to review
                 </Typography>
 
                 <Button

@@ -33,9 +33,9 @@ const OrderCard = ({ order, orderItems }) => {
   // Calculate the total amount for an order
   const calculateOrderTotal = (orderId) => {
     const items = orderItems.filter(item => item.order_id === orderId);
-    
+
     if (items.length === 0) return "0.00";
-    
+
     const subtotal = items.reduce((sum, item) => {
       const lineTotal = parseFloat(item.line_total) || 0;
       return sum + lineTotal;
@@ -110,7 +110,7 @@ const OrderCard = ({ order, orderItems }) => {
   const fetchOrderDetails = async (orderId) => {
     setLoading(true);
     setError('');
-    
+
     try {
       const authToken = localStorage.getItem('token');
       const response = await fetch(`${baseurl}/api/order/${orderId}`, {
@@ -192,10 +192,10 @@ const OrderCard = ({ order, orderItems }) => {
   }, [order.id]);
 
   return (
-    <Card sx={{ 
-      mb: 2, 
-      p: 2.5, 
-      borderRadius: 3, 
+    <Card sx={{
+      mb: 2,
+      p: 2.5,
+      borderRadius: 3,
       boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
       border: '1px solid #f0f0f0',
       transition: 'all 0.2s ease',
@@ -239,16 +239,16 @@ const OrderCard = ({ order, orderItems }) => {
         </Box>
 
         {/* Status Labels */}
-        <Box sx={{ 
-          display: 'flex', 
+        <Box sx={{
+          display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           mt: 1
         }}>
           {sliderMarks.map((mark, index) => (
-            <Box 
+            <Box
               key={mark.value}
-              sx={{ 
+              sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -288,10 +288,10 @@ const OrderCard = ({ order, orderItems }) => {
       </Box>
 
       {/* Current Status */}
-      <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: 1, 
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
         mb: 2,
         p: 1.5,
         backgroundColor: `${statusColor}10`,
@@ -359,8 +359,8 @@ const OrderCard = ({ order, orderItems }) => {
               variant="contained"
               size="small"
               onClick={handleCancelOrder}
-              sx={{ 
-                bgcolor: '#f44336', 
+              sx={{
+                bgcolor: '#f44336',
                 color: 'white',
                 textTransform: 'none',
                 borderRadius: 2,
@@ -377,13 +377,13 @@ const OrderCard = ({ order, orderItems }) => {
               variant="contained"
               size="small"
               onClick={handleTrackOrder}
-              sx={{ 
-                bgcolor: statusColor, 
+              sx={{
+                bgcolor: statusColor,
                 textTransform: 'none',
                 borderRadius: 2,
                 px: 2,
                 fontWeight: 600,
-                '&:hover': { 
+                '&:hover': {
                   bgcolor: statusColor,
                   filter: 'brightness(0.9)'
                 }
@@ -398,14 +398,14 @@ const OrderCard = ({ order, orderItems }) => {
                 variant="contained"
                 size="small"
                 onClick={() => navigate(`/Invoicepage/${order.oid}`)}
-                sx={{ 
-                  bgcolor: statusColor, 
+                sx={{
+                  bgcolor: statusColor,
                   textTransform: 'none',
                   borderRadius: 2,
                   px: 2,
                   fontWeight: 600,
                   mr: 1,
-                  '&:hover': { 
+                  '&:hover': {
                     bgcolor: statusColor,
                     filter: 'brightness(0.9)'
                   }
@@ -437,10 +437,11 @@ const OrderTrackingPage = () => {
   const fetchOrders = async () => {
     setLoading(true);
     setError('');
-    
+
     try {
+      const customerId = user?.uid || user?.id;
       const authToken = localStorage.getItem('token');
-      const response = await fetch(`${baseurl}/api/order/all`, {
+      const response = await fetch(`${baseurl}/api/order/customer/${customerId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -507,7 +508,7 @@ const OrderTrackingPage = () => {
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
-      
+
       <Box sx={{ flex: 1, p: 3, maxWidth: 1200, mx: 'auto', width: '100%' }}>
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" fontWeight={700} sx={{ mb: 1 }}>
@@ -545,11 +546,11 @@ const OrderTrackingPage = () => {
 
         {/* Empty state */}
         {!loading && !error && filteredOrders.length === 0 && (
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
             py: 8,
             textAlign: 'center'
           }}>
@@ -558,12 +559,12 @@ const OrderTrackingPage = () => {
               No orders found
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              {activeTab === 'all' 
-                ? "You haven't placed any orders yet." 
+              {activeTab === 'all'
+                ? "You haven't placed any orders yet."
                 : `You don't have any ${activeTab.toLowerCase()} orders.`}
             </Typography>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={() => navigate('/products')}
               sx={{ borderRadius: 2, px: 4 }}
             >
@@ -578,10 +579,10 @@ const OrderTrackingPage = () => {
             {filteredOrders
               .sort((a, b) => new Date(b.order_date) - new Date(a.order_date))
               .map(order => (
-                <OrderCard 
-                  key={order.oid} 
-                  order={order} 
-                  orderItems={orderItems} 
+                <OrderCard
+                  key={order.oid}
+                  order={order}
+                  orderItems={orderItems}
                 />
               ))}
           </Box>

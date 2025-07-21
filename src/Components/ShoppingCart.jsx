@@ -172,7 +172,7 @@ const ShoppingCart = () => {
 
       // Find the item to get current details
       const item = cartItems.find(item => item.id === productId);
-      
+      console.log(newQuantity)
       const requestBody = {
         customer_id: customerId,
         product_id: productId,
@@ -218,6 +218,7 @@ const ShoppingCart = () => {
 
   const handleIncrement = (productId, cartId) => {
     const newQuantity = (quantities[productId] || 1) + 1;
+    // console.log(newQuantity)
     updateCartQuantity(productId, newQuantity, cartId);
   };
 
@@ -225,6 +226,7 @@ const ShoppingCart = () => {
     const currentQuantity = quantities[productId] || 1;
     if (currentQuantity > 1) {
       const newQuantity = currentQuantity - 1;
+      // console.log(newQuantity)
       updateCartQuantity(productId, newQuantity, cartId);
     }
   };
