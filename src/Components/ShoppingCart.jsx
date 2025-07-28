@@ -436,7 +436,7 @@ const ShoppingCart = () => {
                     secondary={
                       <Box>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                          Fresh Market Co. • ₹{item.price}/{item.unit}
+                          ₹{item.price}/1kg
                         </Typography>
                         <Typography variant="h6" fontWeight="bold" color="#10b981" sx={{ mb: 2 }}>
                           ₹{(item.price * (quantities[item.id] || 1)).toFixed(2)}

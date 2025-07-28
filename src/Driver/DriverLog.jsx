@@ -90,7 +90,15 @@ export default function DriverLog() {
           oid: order.oid || order.order_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
           type: 'Pickup',
           location: order.CustomerProfile?.institution_name || order.location || 'Unknown Location',
-          address: `${order.address || 'Address not available'}, ${order.city || ''}`,
+          address: `${
+            order.address || order.pickup_address || order.delivery_address || (order.CustomerProfile && order.CustomerProfile.address) || 'Address not available'
+          }, ${
+            order.city || (order.CustomerProfile && order.CustomerProfile.city) || ''
+          }, ${
+            order.state || (order.CustomerProfile && order.CustomerProfile.state) || ''
+          }, ${
+            order.pincode || (order.CustomerProfile && order.CustomerProfile.pincode) || ''
+          }`,
           time: order.time || order.delivery_time || 'Time not set',
           status: order.status || 'Completed',
         }));
@@ -103,7 +111,15 @@ export default function DriverLog() {
           oid: order.procurement_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
           type: 'Pickup',
           location: order.vendor_name || order.vendor?.name || 'Vendor Location',
-          address: `${order.vendor_address || order.address || 'Address not available'}, ${order.vendor_city || order.city || ''}`,
+          address: `${
+            order.vendor?.address || order.address || order.pickup_address || 'Address not available'
+          }, ${
+            order.vendor?.city || order.city || ''
+          }, ${
+            order.vendor?.state || order.state || ''
+          }, ${
+            order.vendor?.pincode || order.pincode || ''
+          }`,
           time: order.pickup_time || order.expected_delivery_date || order.order_date || 'Time not set',
           status: order.status === 'Received' ? 'Completed' : 'Received' || 'Completed',
         }));
