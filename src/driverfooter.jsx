@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   BottomNavigation,
@@ -11,30 +11,29 @@ import {
   Receipt as ActivityIcon,
   Person as ProfileIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+const pathToValue = {
+  '/driver-dashboard': 0,
+  '/driver-tasks': 1,
+  '/driver-activity': 2,
+  '/driver-profile': 3,
+};
+
+const valueToPath = [
+  '/driver-dashboard',
+  '/driver-tasks',
+  '/driver-activity',
+  '/driver-profile',
+];
 
 const DriverFooter = () => {
-  const [value, setValue] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
+  const value = pathToValue[location.pathname] ?? 0;
 
   const handleChange = (event, newValue) => {
-    setValue(newValue);
-    switch (newValue) {
-      case 0:
-        navigate('/driver-dashboard'); // Assuming a driver dashboard route
-        break;
-      case 1:
-        navigate('/driver-tasks'); // Assuming a driver tasks route
-        break;
-      case 2:
-        navigate('/driver-activity'); // Assuming a driver activity route
-        break;
-      case 3:
-        navigate('/driver-profile'); // Assuming a driver profile route
-        break;
-      default:
-        break;
-    }
+    navigate(valueToPath[newValue]);
   };
 
   return (
@@ -43,7 +42,7 @@ const DriverFooter = () => {
         showLabels
         value={value}
         onChange={handleChange}
-        sx={{ backgroundColor: '#f5f5f5' }} // Light grey background
+        sx={{ backgroundColor: '#f5f5f5' }}
       >
         <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} sx={{ color: value === 0 ? '#4CAF50' : '#888' }} />
         <BottomNavigationAction label="Tasks" icon={<TasksIcon />} sx={{ color: value === 1 ? '#4CAF50' : '#888' }} />

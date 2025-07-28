@@ -20,7 +20,6 @@ import {
   Pagination
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -716,9 +715,6 @@ const ProcurementOrder = () => {
               <NotificationsIcon />
             </IconButton>
           </Badge>
-          <IconButton sx={{ color: 'white' }}>
-            <FilterListIcon />
-          </IconButton>
         </Box>
       </Box>
 

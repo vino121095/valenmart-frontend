@@ -263,31 +263,6 @@ const Profile = () => {
               />
             </ListItem>
             <Divider />
-            <ListItem
-              secondaryAction={
-                <Switch
-                  edge="end"
-                  color="success"
-                  checked={notificationsEnabled}
-                  onChange={() => setNotificationsEnabled(!notificationsEnabled)}
-                />
-              }
-            >
-              <ListItemText primary="Notifications" />
-            </ListItem>
-            <Divider />
-            <ListItem
-              secondaryAction={
-                <Switch
-                  edge="end"
-                  color="success"
-                  checked={darkModeEnabled}
-                  onChange={() => setDarkModeEnabled(!darkModeEnabled)}
-                />
-              }
-            >
-              <ListItemText primary="Dark Mode" />
-            </ListItem>
           </List>
 
           <Divider />

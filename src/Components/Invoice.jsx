@@ -292,38 +292,6 @@ const Invoice = () => {
             </Card>
           ))
         )}
-
-        {/* Buttons */}
-        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-          <Button
-            variant="contained"
-            fullWidth
-            sx={{
-              bgcolor: '#00B074',
-              textTransform: 'none',
-              '&:hover': {
-                bgcolor: '#008a5c'
-              }
-            }}
-          >
-            Export All
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            sx={{
-              borderColor: '#00a651',
-              color: '#00a651',
-              textTransform: 'none',
-              '&:hover': {
-                borderColor: '#008a5c',
-                color: '#008a5c'
-              }
-            }}
-          >
-            Remind
-          </Button>
-        </Box>
       </Box>
 
       {/* Bottom Navigation */}

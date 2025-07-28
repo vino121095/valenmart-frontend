@@ -37,9 +37,9 @@ const VDashboard = () => {
   const [notificationCount, setNotificationCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState(false);
+  const [ordersTodayRevenue, setOrdersTodayRevenue] = useState(0);
 
-  const vendor_id = parseInt(localStorage.getItem('vendor_id'), 10) || 1;
-  const vendorId = vendor_id;
+  const [vendorId, setVendorId] = useState(null);
 
   // Fetch product data
   useEffect(() => {
@@ -60,20 +60,44 @@ const VDashboard = () => {
 
   // Fetch procurement data
   const fetchProcurementData = async () => {
+    if (!vendorId) return;
+    
     try {
       const response = await fetch(`${baseurl}/api/procurement/all`);
       const data = await response.json();
       
-      if (Array.isArray(data.data)) {
-        setStocks(data.data);
+      console.log('Procurement data response:', data); // Debug log
+      
+      const procurementData = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+      setStocks(procurementData);
 
-        // Count orders placed today
-        const today = dayjs().format('YYYY-MM-DD');
-        const ordersToday = data.data.filter((order) =>
-          dayjs(order.order_date).format('YYYY-MM-DD') === today
-        );
-        setOrdersTodayCount(ordersToday.length);
-      }
+      // Count orders placed today for this vendor
+      const today = dayjs().format('YYYY-MM-DD');
+      console.log('Today:', today); // Debug log
+      console.log('Vendor ID:', vendorId); // Debug log
+      
+      const ordersToday = procurementData.filter((order) => {
+        const orderVendorId = String(order.vendor_id || order.vendorId);
+        const currentVendorId = String(vendorId);
+        const orderDate = dayjs(order.order_date || order.created_at || order.date).format('YYYY-MM-DD');
+        
+        console.log('Order vendor ID:', orderVendorId, 'Current vendor ID:', currentVendorId, 'Order date:', orderDate); // Debug log
+        
+        return orderVendorId === currentVendorId && orderDate === today;
+      });
+      
+      console.log('Orders today:', ordersToday); // Debug log
+      setOrdersTodayCount(ordersToday.length);
+
+      // Calculate today's revenue for this vendor
+      const todayRevenue = ordersToday.reduce((sum, order) => {
+        const price = Number(order.price || order.total_amount || order.amount || 0);
+        console.log('Order price:', price); // Debug log
+        return sum + price;
+      }, 0);
+      
+      console.log('Today revenue:', todayRevenue); // Debug log
+      setOrdersTodayRevenue(todayRevenue);
     } catch (err) {
       console.error('Error fetching stocks:', err);
       setSnackbar({
@@ -85,16 +109,20 @@ const VDashboard = () => {
   };
 
   useEffect(() => {
-    fetchProcurementData();
-  }, []);
+    if (vendorId) {
+      fetchProcurementData();
+    }
+  }, [vendorId]);
 
   useEffect(() => {
-    // Always fetch vendor name from API
+    // Get vendor ID and fetch vendor details
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const vendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
+    const currentVendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
+    setVendorId(currentVendorId);
+    
     const token = localStorage.getItem('token');
-    if (vendorId && token) {
-      fetch(`${baseurl}/api/vendor/${vendorId}`, {
+    if (currentVendorId && token) {
+      fetch(`${baseurl}/api/vendor/${currentVendorId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -110,7 +138,7 @@ const VDashboard = () => {
 
   const pendingOrders = stocks.filter(
     (order) =>
-      order.status === 'Requested' && String(order.vendor_id) === String(vendorId)
+      order.status === 'Requested' && String(order.vendor_id || order.vendorId) === String(vendorId)
   );
 
   const handleStartPickup = async (pickup) => {
@@ -279,14 +307,12 @@ const VDashboard = () => {
             <CardContent>
               <Typography variant="subtitle2">Orders Today</Typography>
               <Typography variant="h5">{ordersTodayCount}</Typography>
-              <Typography color="green">+12.5%</Typography>
             </CardContent>
           </Card>
           <Card sx={{ flex: 1, borderRadius: 4 }}>
             <CardContent>
               <Typography variant="subtitle2">Revenue (₹)</Typography>
-              <Typography variant="h5">14,250</Typography>
-              <Typography color="green">+5.3%</Typography>
+              <Typography variant="h5">{ordersTodayRevenue.toLocaleString()}</Typography>
             </CardContent>
           </Card>
         </Box>
@@ -374,23 +400,6 @@ const VDashboard = () => {
                               </Typography>
                             </Box>
                           </Box>
-                          <Button
-                            variant="contained"
-                            color="success"
-                            disabled={pickupLoading[order.procurement_id]}
-                            onClick={() => handleStartPickup(order)}
-                            startIcon={
-                              pickupLoading[order.procurement_id] ? (
-                                <CircularProgress size={16} color="inherit" />
-                              ) : null
-                            }
-                            sx={{
-                              minWidth: '120px',
-                              textTransform: 'none'
-                            }}
-                          >
-                            {pickupLoading[order.procurement_id] ? 'Starting...' : 'Start Pickup'}
-                          </Button>
                         </Box>
                       </CardContent>
                     </Card>
@@ -441,13 +450,6 @@ const VDashboard = () => {
                       Pickup: {pickup.pickup_time || pickup.order_date}
                     </Typography>
                   </Box>
-                  <Button
-                    onClick={() => navigate('/Pickupdetails', { state: { pickup } })}
-                    variant="contained"
-                    sx={{ bgcolor: '#00A86B', textTransform: 'none' }}
-                  >
-                    Mark Ready
-                  </Button>
                 </CardContent>
               ))}
             </Box>

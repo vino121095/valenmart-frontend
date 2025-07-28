@@ -289,7 +289,7 @@ function InvoicesPage() {
         <Box sx={{ pb: 8 }}>
             <Header />
             <Container maxWidth={false} sx={{ px: exportMode ? 0 : isMobile ? 1 : 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, mt: 3 }}>
                     <Button
                         variant="contained"
                         onClick={exportToPDF}

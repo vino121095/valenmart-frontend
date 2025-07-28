@@ -154,25 +154,6 @@ export default function DriverAccount() {
               <Typography variant="subtitle1">Personal Details</Typography>
               <Typography variant="body2" color="text.secondary">Manage Personal Details and Address</Typography>
             </Box>
-            <Divider />
-            <Box my={2}>
-              <Typography variant="subtitle1">Login Credentials</Typography>
-              <Typography variant="body2" color="text.secondary">Update Login Credentials</Typography>
-            </Box>
-            <Divider />
-            <Box my={2} sx={{ cursor: 'pointer' }} onClick={() => navigate('/driver-notifications')}>
-              <Typography variant="subtitle1">Notifications</Typography>
-              <Typography variant="body2" color="text.secondary">View your notifications</Typography>
-            </Box>
-            <Divider />
-            <Box my={2} display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="subtitle1">Dark Mode</Typography>
-              <Switch color="default" />
-            </Box>
-            <Box my={2} display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="subtitle1">Availability Status</Typography>
-              <Switch color="primary" />
-            </Box>
             <Box mt={3}>
               <Typography 
                 variant="subtitle1" 

@@ -146,42 +146,10 @@ const VProfile = () => {
               />
             </ListItem>
             <Divider />
-            <ListItem button>
-              <ListItemText
-                primary="Login Credentials"
-                secondary="Update login credentials"
-              />
-            </ListItem>
-            <Divider />
             <ListItem button onClick={() => navigate('/vendor-notifications')}>
               <ListItemText primary="Notifications" secondary="View your notifications" />
             </ListItem>
             <Divider />
-            <ListItem
-              secondaryAction={
-                <Switch
-                  edge="end"
-                  color="success"
-                  checked={notificationsEnabled}
-                  onChange={() => setNotificationsEnabled(!notificationsEnabled)}
-                />
-              }
-            >
-              <ListItemText primary="Notifications" />
-            </ListItem>
-            <Divider />
-            <ListItem
-              secondaryAction={
-                <Switch
-                  edge="end"
-                  color="success"
-                  checked={darkModeEnabled}
-                  onChange={() => setDarkModeEnabled(!darkModeEnabled)}
-                />
-              }
-            >
-              <ListItemText primary="Dark Mode" />
-            </ListItem>
           </List>
 
           <Divider />

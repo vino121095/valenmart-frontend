@@ -15,6 +15,8 @@ import {
   CircularProgress,
   Alert,
   LinearProgress,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { FilterList, ShoppingCart } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -432,6 +434,9 @@ const OrderTrackingPage = () => {
   const [activeTab, setActiveTab] = useState('all');
   const navigate = useNavigate();
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isVerySmall = useMediaQuery('(max-width: 400px)');
 
   // Fetch all orders
   const fetchOrders = async () => {
@@ -505,6 +510,30 @@ const OrderTrackingPage = () => {
     setActiveTab(newValue);
   };
 
+  // Get responsive tab labels
+  const getTabLabel = (fullLabel) => {
+    if (isVerySmall) {
+      const shortLabels = {
+        'All Orders': 'All',
+        'Active': 'Active',
+        'New Order': 'New',
+        'Out for Delivery': 'Delivery',
+        'Delivered': 'Done'
+      };
+      return shortLabels[fullLabel] || fullLabel;
+    } else if (isMobile) {
+      const mediumLabels = {
+        'All Orders': 'All Orders',
+        'Active': 'Active',
+        'New Order': 'New Order',
+        'Out for Delivery': 'Delivery',
+        'Delivered': 'Delivered'
+      };
+      return mediumLabels[fullLabel] || fullLabel;
+    }
+    return fullLabel;
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
@@ -520,13 +549,46 @@ const OrderTrackingPage = () => {
         </Box>
 
         {/* Tabs for filtering orders */}
-        <Box sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={activeTab} onChange={handleTabChange} aria-label="order status tabs">
-            <Tab label="All Orders" value="all" />
-            <Tab label="Active" value="active" />
-            <Tab label="New Order" value="New Order" />
-            <Tab label="Out for Delivery" value="Out for Delivery" />
-            <Tab label="Delivered" value="Delivered" />
+        <Box sx={{ 
+          mb: 3, 
+          borderBottom: 1, 
+          borderColor: 'divider',
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': { display: 'none' },
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none'
+        }}>
+          <Tabs 
+            value={activeTab} 
+            onChange={handleTabChange} 
+            aria-label="order status tabs"
+            variant={isVerySmall ? "scrollable" : "standard"}
+            scrollButtons={isVerySmall ? "auto" : false}
+            allowScrollButtonsMobile
+            sx={{
+              minHeight: isVerySmall ? '48px' : '56px',
+              '& .MuiTab-root': {
+                minWidth: isVerySmall ? '60px' : 'auto',
+                fontSize: isVerySmall ? '0.7rem' : isMobile ? '0.8rem' : '0.875rem',
+                padding: isVerySmall ? '6px 8px' : isMobile ? '8px 12px' : '12px 16px',
+                textTransform: 'none',
+                fontWeight: 500,
+                '&.Mui-selected': {
+                  color: '#4CAF50',
+                  fontWeight: 600,
+                }
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: '#4CAF50',
+                height: 3,
+              }
+            }}
+          >
+            <Tab label={getTabLabel("All Orders")} value="all" />
+            <Tab label={getTabLabel("Active")} value="active" />
+            <Tab label={getTabLabel("New Order")} value="New Order" />
+            <Tab label={getTabLabel("Out for Delivery")} value="Out for Delivery" />
+            <Tab label={getTabLabel("Delivered")} value="Delivered" />
           </Tabs>
         </Box>
 
