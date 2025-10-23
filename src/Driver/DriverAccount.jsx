@@ -100,15 +100,36 @@ export default function DriverAccount() {
     fetchDriverDetails();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userType');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('driver_id');
-    setOpenLogoutDialog(false);
-    window.location.replace('/login');
+  const handleLogout = async () => {
+    try {
+      const userData = localStorage.getItem('userData');
+      const parsedData = userData ? JSON.parse(userData) : {};
+      const driverId = localStorage.getItem('driver_id') || parsedData.did || parsedData.id;
+      const authToken = localStorage.getItem('token');
+      
+      if (driverId && authToken) {
+        await fetch(`${baseurl}/api/driver-details/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            login_log_id: parsedData.login_log_id || null
+          })
+        });
+      }
+    } catch (e) {
+      console.error('Error logging out:', e);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('userType');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('driver_id');
+      setOpenLogoutDialog(false);
+      window.location.replace('/login');
+    }
   };
 
   const handleLogoutClick = () => {
