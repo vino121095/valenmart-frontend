@@ -321,9 +321,17 @@ const Products = () => {
                     >
                         Available Now
                     </Typography>
-                    <Grid container spacing={1.5}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexWrap: 'wrap', 
+                        gap: { xs: 1, sm: 1.5, md: 2 },
+                        px: { xs: 1.5, sm: 1.5, md: 2 }
+                    }}>
                         {filteredProducts.slice(0, 4).map((product, index) => (
-                            <Grid item xs={6} key={product.id || index}>
+                            <Box key={product.id || index} sx={{ 
+                                width: { xs: 'calc(50% - 4px)', sm: 'calc(25% - 6px)', md: 'calc(25% - 8px)' },
+                                minWidth: { xs: 'calc(50% - 4px)', sm: 'calc(25% - 6px)', md: 'calc(25% - 8px)' }
+                            }}>
                                 <Card
                                     sx={{
                                         display: "flex",
@@ -441,12 +449,13 @@ const Products = () => {
                                             disabled={loading}
                                             sx={{
                                                 backgroundColor: "#00B76F",
-                                                fontSize: "0.75rem",
+                                                fontSize: "0.7rem",
                                                 fontWeight: 600,
                                                 py: 1,
                                                 borderRadius: 2,
                                                 textTransform: "none",
                                                 color: "#fff",
+                                                whiteSpace: "nowrap",
                                                 "&:hover": { backgroundColor: "#00985D" },
                                                 "&:disabled": { backgroundColor: "#cccccc" },
                                             }}
@@ -454,14 +463,14 @@ const Products = () => {
                                                 handleAddToCart(product, quantities[product.id] || 1)
                                             }
                                         >
-                                            <ShoppingCartIcon sx={{ fontSize: "0.9rem", mr: 0.5 }} />
+                                            <ShoppingCartIcon sx={{ fontSize: "0.8rem", mr: 0.5 }} />
                                             {loading ? "Adding..." : "ADD TO CART"}
                                         </Button>
                                     </CardActions>
                                 </Card>
-                            </Grid>
+                            </Box>
                         ))}
-                    </Grid>
+                    </Box>
                 </Box>
 
                 {/* View All */}
