@@ -18,6 +18,8 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import Badge from '@mui/material/Badge';
 import { useNavigate, useLocation } from 'react-router-dom';
 import VendorFooter from '../vendorfooter';
 import baseurl from '../baseurl/ApiService';
@@ -382,6 +384,7 @@ const EditOrder = () => {
   const [items, setItems] = useState([]);
   const [notes, setNotes] = useState(orderData.notes || '');
   const [loading, setLoading] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
@@ -405,6 +408,31 @@ const EditOrder = () => {
       setItems([]);
     }
   }, [orderData]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const authToken = localStorage.getItem('token');
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const vendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
+        if (!vendorId) return;
+        const response = await fetch(`${baseurl}/api/vendor-notification/all/${vendorId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data && data.notifications) {
+          const unreadCount = data.notifications.filter(n => !n.is_read).length;
+          setNotificationCount(unreadCount);
+        }
+      } catch (e) {}
+    };
+    fetchNotifications();
+  }, []);
 
   const handleBack = () => {
     navigate(-1);
@@ -542,9 +570,20 @@ const EditOrder = () => {
         >
           <ArrowBackIcon sx={{ fontSize: 28 }} />
         </IconButton>
-        <Typography variant="h6" fontWeight="bold">
+        <Typography variant="h6" fontWeight="bold" sx={{ flex: 1 }}>
           Edit Order #{procurementId}
         </Typography>
+        <IconButton
+          onClick={() => navigate('/vendor-notifications')}
+          sx={{
+            backgroundColor: '#FFFFFF4D',
+            color: 'white'
+          }}
+        >
+          <Badge badgeContent={notificationCount} color="error">
+            <NotificationsIcon />
+          </Badge>
+        </IconButton>
       </Box>
 
       {/* Content */}

@@ -9,14 +9,15 @@ import {
     Snackbar,
     Alert,
     CircularProgress,
-    IconButton
+    IconButton,
+    Badge
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Footer from '../Footer';
 import baseurl from '../baseurl/ApiService';
 import { useAuth } from '../App';
 import { useCart } from '../context/CartContext';
-import ArrowBack from '@mui/icons-material/ArrowBack';
+import { ArrowBack, Notifications, ShoppingCart } from '@mui/icons-material';
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -26,7 +27,8 @@ const Checkout = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const [loading, setLoading] = useState(false);
     const [profileLoading, setProfileLoading] = useState(true);
-    const { updateCartCount } = useCart();
+    const { updateCartCount, cartCount } = useCart();
+    const [notificationCount, setNotificationCount] = useState(0);
     const [deliveryDetails, setDeliveryDetails] = useState({
         institution_name: '',
         institution_type: '',
@@ -179,6 +181,28 @@ const Checkout = () => {
         }
         // eslint-disable-next-line
     }, [profileLoading]);
+
+    // Fetch notifications
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            try {
+                const authToken = localStorage.getItem('token');
+                const customerId = user?.uid || user?.id;
+                if (!customerId) return;
+                const response = await fetch(`${baseurl}/api/notification/all/${customerId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                if (data && data.notifications) {
+                    const unreadCount = data.notifications.filter(n => !n.is_read).length;
+                    setNotificationCount(unreadCount);
+                }
+            } catch (e) {}
+        };
+        fetchNotifications();
+    }, [user]);
 
     // Add useEffect to fetch previous order addresses
     useEffect(() => {
@@ -424,25 +448,65 @@ const Checkout = () => {
         !deliveryDetails.contact_person_phone;
 
     return (
-        <Box sx={{ pb: 8 }}>
+        <Box sx={{ pb: 8, pt: 10 }}>
             {/* Header */}
             <Box
                 sx={{
-                    bgcolor: '#00B074',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    background: 'linear-gradient(90deg, #004D26, #00A84F)',
                     color: '#fff',
-                    p: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
+                    p: 2.5,
+                    borderRadius: '0 0 24px 24px',
+                    boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
                 }}
             >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <IconButton onClick={() => navigate(-1)} sx={{ color: '#fff', mr: 1 }}>
-                        <ArrowBack />
-                    </IconButton>
-                    <Typography fontWeight={600} fontSize={18}>
-                        Checkout
-                    </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <IconButton
+                            onClick={() => navigate(-1)}
+                            size="small"
+                            sx={{
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                color: 'white',
+                                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+                            }}
+                        >
+                            <ArrowBack fontSize="small" />
+                        </IconButton>
+                        <Typography variant="h6" fontWeight="bold">
+                            Checkout
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                            onClick={() => navigate('/notifications')}
+                            sx={{
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                color: 'white',
+                                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+                            }}
+                        >
+                            <Badge badgeContent={notificationCount} color="error">
+                                <Notifications sx={{ fontSize: 26 }} />
+                            </Badge>
+                        </IconButton>
+                        <IconButton
+                            onClick={() => navigate('/cart')}
+                            sx={{
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                color: 'white',
+                                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+                            }}
+                        >
+                            <Badge badgeContent={cartCount} color="error">
+                                <ShoppingCart sx={{ fontSize: 26 }} />
+                            </Badge>
+                        </IconButton>
+                    </Box>
                 </Box>
             </Box>
 
@@ -648,7 +712,7 @@ const Checkout = () => {
                     fullWidth
                     variant="contained"
                     sx={{
-                        backgroundColor: '#00B76F',
+                        background: 'linear-gradient(90deg, #004D26, #00A84F)',
                         borderRadius: 2,
                         py: 1.5,
                         fontWeight: 600,

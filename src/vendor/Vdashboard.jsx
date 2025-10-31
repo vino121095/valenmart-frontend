@@ -91,9 +91,19 @@ const VDashboard = () => {
 
       // Calculate today's revenue for this vendor
       const todayRevenue = ordersToday.reduce((sum, order) => {
-        const price = Number(order.price || order.total_amount || order.amount || 0);
-        console.log('Order price:', price); // Debug log
-        return sum + price;
+        let orderTotal = 0;
+        try {
+          const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+          if (Array.isArray(items)) {
+            orderTotal = items.reduce((itemSum, item) => {
+              return itemSum + (Number(item.quantity || 0) * Number(item.unit_price || 0));
+            }, 0);
+          }
+        } catch {
+          orderTotal = Number(order.price || order.total_amount || order.amount || 0);
+        }
+        console.log('Order total:', orderTotal); // Debug log
+        return sum + orderTotal;
       }, 0);
       
       console.log('Today revenue:', todayRevenue); // Debug log
@@ -271,48 +281,93 @@ const VDashboard = () => {
   );
 
   return (
-    <Box sx={{ bgcolor: '#F8F8FC', minHeight: '100vh', pb: 8 }}>
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 10, pt: 14 }}>
       {/* Header */}
       <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        bgcolor="#00A86B"
-        color="#fff"
-        p={2}
-        mb={2}
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(90deg, #004D26, #00A84F)',
+          color: '#fff',
+          p: 2.5,
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
+        }}
       >
-        <Box display="flex" alignItems="center" gap={1}>
-          <Avatar sx={{ bgcolor: '#ccc' }}>{vendorName?.[0] || 'V'}</Avatar>
-          <Typography variant="h6" fontWeight="bold">
-            Hello, {vendorName}
-          </Typography>
-        </Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box display="flex" alignItems="center" gap={2}>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 48, height: 48, fontSize: 20, fontWeight: 'bold' }}>
+              {vendorName?.[0] || 'V'}
+            </Avatar>
+            <Box>
+              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: 13 }}>
+                Welcome back
+              </Typography>
+              <Typography variant="h6" fontWeight="bold">
+                {vendorName}
+              </Typography>
+            </Box>
+          </Box>
 
-        <IconButton sx={{ backgroundColor: '#FFFFFF4D', color: 'white', p: 1 }} onClick={handlenotification}>
-          <Badge color="error" badgeContent={notificationCount}>
-            <NotificationsIcon sx={{ fontSize: 28 }} />
-          </Badge>
-        </IconButton>
+          <IconButton 
+            sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              color: 'white', 
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+            }} 
+            onClick={handlenotification}
+          >
+            <Badge color="error" badgeContent={notificationCount}>
+              <NotificationsIcon sx={{ fontSize: 26 }} />
+            </Badge>
+          </IconButton>
+        </Box>
       </Box>
 
       {/* Summary Cards */}
       <Box px={2}>
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          Summary
+        <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: '#1e293b', mb: 2 }}>
+          Today's Overview
         </Typography>
 
-        <Box display="flex" gap={2} mt={2}>
-          <Card sx={{ flex: 1, borderRadius: 4 }}>
-            <CardContent>
-              <Typography variant="subtitle2">Orders Today</Typography>
-              <Typography variant="h5">{ordersTodayCount}</Typography>
+        <Box display="flex" gap={2}>
+          <Card 
+            elevation={0}
+            sx={{ 
+              flex: 1, 
+              borderRadius: 3,
+              border: '1px solid #e2e8f0',
+              background: 'linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%)'
+            }}
+          >
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: 13 }}>
+                Orders Today
+              </Typography>
+              <Typography variant="h4" fontWeight="bold" sx={{ color: '#16a34a' }}>
+                {ordersTodayCount}
+              </Typography>
             </CardContent>
           </Card>
-          <Card sx={{ flex: 1, borderRadius: 4 }}>
-            <CardContent>
-              <Typography variant="subtitle2">Revenue (₹)</Typography>
-              <Typography variant="h5">{ordersTodayRevenue.toLocaleString()}</Typography>
+          <Card 
+            elevation={0}
+            sx={{ 
+              flex: 1, 
+              borderRadius: 3,
+              border: '1px solid #e2e8f0',
+              background: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%)'
+            }}
+          >
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: 13 }}>
+                Revenue
+              </Typography>
+              <Typography variant="h4" fontWeight="bold" sx={{ color: '#2563eb' }}>
+                ₹{ordersTodayRevenue.toLocaleString()}
+              </Typography>
             </CardContent>
           </Card>
         </Box>
@@ -320,11 +375,26 @@ const VDashboard = () => {
 
       {/* Pending Orders */}
       <Box mt={3} px={2}>
-        <Card sx={{ borderRadius: 4, overflow: 'hidden' }}>
+        <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0' }}>
           <CardContent sx={{ p: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Pending Orders ({pendingOrders.length})
-            </Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: '#1e293b' }}>
+                Pending Orders
+              </Typography>
+              <Box 
+                sx={{ 
+                  bgcolor: '#fef3c7', 
+                  color: '#92400e', 
+                  px: 2, 
+                  py: 0.5, 
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  fontSize: 14
+                }}
+              >
+                {pendingOrders.length}
+              </Box>
+            </Box>
 
             {pendingOrders.length > 0 ? (
               <Box sx={{ mt: 2 }}>
@@ -338,16 +408,22 @@ const VDashboard = () => {
                   }
                   return (
                     <Card 
-                      key={order.procurement_id} 
+                      key={order.procurement_id}
+                      elevation={0}
                       sx={{ 
                         mb: 2, 
-                        backgroundColor: '#f9f9f9',
-                        border: '1px solid #e0e0e0',
+                        backgroundColor: '#fefce8',
+                        border: '1px solid #fde047',
                         borderRadius: 2,
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                          transform: 'translateY(-2px)'
+                        },
                         '&:last-child': { mb: 0 }
                       }}
                     >
-                      <CardContent sx={{ p: 3 }}>
+                      <CardContent sx={{ p: 2.5 }}>
                         <Box
                           sx={{ 
                             display: 'flex', 
@@ -362,7 +438,7 @@ const VDashboard = () => {
                               fontWeight="bold" 
                               sx={{ mb: 1 }}
                             >
-                              Admin Order #{order.procurement_id}
+                              {order.type === 'vendor' || order.type === 'farmer' ? 'From Vendor' : 'Admin Order'} #{order.procurement_id}
                             </Typography>
                             <Typography 
                               variant="body2" 
@@ -388,15 +464,16 @@ const VDashboard = () => {
                               <Typography 
                                 variant="caption" 
                                 sx={{ 
-                                  backgroundColor: '#FFF5E0',
-                                  color: '#D78A00',
-                                  px: 1,
+                                  backgroundColor: '#fef3c7',
+                                  color: '#92400e',
+                                  px: 1.5,
                                   py: 0.5,
-                                  borderRadius: 1,
-                                  fontSize: '0.75rem'
+                                  borderRadius: 1.5,
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600
                                 }}
                               >
-                                Status: {order.status}
+                                {order.status}
                               </Typography>
                             </Box>
                           </Box>
@@ -409,14 +486,15 @@ const VDashboard = () => {
             ) : (
               <Box sx={{ 
                 textAlign: 'center', 
-                py: 4,
+                py: 6,
                 color: 'text.secondary'
               }}>
-                <Typography variant="body1" sx={{ mb: 1 }}>
-                  No pending orders found
+                <Typography sx={{ fontSize: 48, mb: 2 }}>✅</Typography>
+                <Typography variant="body1" fontWeight={600} sx={{ mb: 0.5, color: '#1e293b' }}>
+                  All Clear!
                 </Typography>
-                <Typography variant="body2">
-                  All orders have been processed
+                <Typography variant="body2" color="text.secondary">
+                  No pending orders at the moment
                 </Typography>
               </Box>
             )}
@@ -426,65 +504,115 @@ const VDashboard = () => {
 
       {/* Today's Pickups */}
       <Box mt={3} px={2}>
-        <Card sx={{ p: 2, borderRadius: 4 }}>
-          <Typography variant="h6" fontWeight="bold" mb={2}>
-            Today's Pickups
-          </Typography>
-          {todaysPickups.length === 0 ? (
-            <Typography color="text.secondary">No pickups for today.</Typography>
-          ) : (
-            <Box sx={{ backgroundColor: '#f9f9f9' }}>
-              {todaysPickups.map((pickup) => (
-                <CardContent
-                  key={pickup.procurement_id}
-                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <Box>
-                    <Typography fontWeight="bold">Admin Order #{pickup.procurement_id}</Typography>
-                    <Typography fontSize={14}>
-                      {pickup.items && typeof pickup.items === 'string'
-                        ? JSON.parse(pickup.items).map(i => i.product_name).join(', ')
-                        : ''}
-                    </Typography>
-                    <Typography fontSize={12} color="text.secondary">
-                      Pickup: {pickup.pickup_time || pickup.order_date}
-                    </Typography>
-                  </Box>
-                </CardContent>
-              ))}
-            </Box>
-          )}
+        <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0' }}>
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight="bold" mb={2} sx={{ color: '#1e293b' }}>
+              Today's Pickups
+            </Typography>
+            {todaysPickups.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography sx={{ fontSize: 40, mb: 1 }}>📦</Typography>
+                <Typography color="text.secondary">No pickups scheduled for today</Typography>
+              </Box>
+            ) : (
+              <Box>
+                {todaysPickups.map((pickup) => (
+                  <Card
+                    key={pickup.procurement_id}
+                    elevation={0}
+                    sx={{ 
+                      mb: 2,
+                      backgroundColor: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      borderRadius: 2,
+                      '&:last-child': { mb: 0 }
+                    }}
+                  >
+                    <CardContent sx={{ p: 2.5 }}>
+                      <Typography fontWeight="bold" sx={{ mb: 0.5 }}>
+                        Admin Order #{pickup.procurement_id}
+                      </Typography>
+                      <Typography fontSize={14} color="text.secondary" sx={{ mb: 0.5 }}>
+                        {pickup.items && typeof pickup.items === 'string'
+                          ? JSON.parse(pickup.items).map(i => i.product_name).join(', ')
+                          : ''}
+                      </Typography>
+                      <Typography fontSize={12} color="text.secondary">
+                        Pickup: {pickup.pickup_time || pickup.order_date}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            )}
+          </CardContent>
         </Card>
       </Box>
 
       {/* Available Stocks */}
-      <Box mt={3} px={2}>
-        <Card sx={{ p: 2, borderRadius: 4 }}>
-          <Typography variant="h6" fontWeight="bold">
-            Available Stocks
-          </Typography>
-          <List>
-            {products.map((item, index) => (
-              <ListItem
-                key={`${item.product_name}-${index}`}
-                secondaryAction={<Typography>{item.unit}</Typography>}
+      <Box mt={3} px={2} mb={3}>
+        <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0' }}>
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight="bold" mb={2} sx={{ color: '#1e293b' }}>
+              Available Stocks
+            </Typography>
+            <List sx={{ p: 0 }}>
+              {products.slice(0, 5).map((item, index) => (
+                <ListItem
+                  key={`${item.product_name}-${index}`}
+                  sx={{ 
+                    px: 0,
+                    borderBottom: index < 4 ? '1px solid #f1f5f9' : 'none'
+                  }}
+                  secondaryAction={
+                    <Typography fontWeight={600} sx={{ color: '#16a34a' }}>
+                      {item.unit}
+                    </Typography>
+                  }
+                >
+                  <ListItemAvatar sx={{ mr: 2 }}>
+                    <Avatar 
+                      variant="rounded"
+                      src={item.product_image ? `${baseurl}/${item.product_image}` : ''}
+                      sx={{ 
+                        bgcolor: '#dcfce7', 
+                        color: '#16a34a',
+                        width: 56,
+                        height: 56,
+                        borderRadius: 2
+                      }}
+                    >
+                      {!item.product_image && (item.icon || item.product_name?.[0] || '?')}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText 
+                    primary={item.product_name}
+                    primaryTypographyProps={{ fontWeight: 500 }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+            <Box display="flex" justifyContent="center" mt={3}>
+              <Button
+                onClick={() => navigate('/AvailableStock')}
+                variant="contained"
+                fullWidth
+                sx={{ 
+                  background: 'linear-gradient(90deg, #004D26, #00A84F)',
+                  color: 'white',
+                  borderRadius: 2,
+                  py: 1.5,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': { 
+                    background: 'linear-gradient(90deg, #003D1F, #008A40)'
+                  }
+                }}
               >
-                <ListItemAvatar>
-                  <Avatar>{item.icon || item.product_name?.[0] || '?'}</Avatar>
-                </ListItemAvatar>
-                <ListItemText primary={item.product_name} />
-              </ListItem>
-            ))}
-          </List>
-          <Box display="flex" justifyContent="center" mt={2}>
-            <Button
-              onClick={() => navigate('/AvailableStock')}
-              variant="contained"
-              sx={{ bgcolor: '#00A86B' }}
-            >
-              See All
-            </Button>
-          </Box>
+                View All Stocks
+              </Button>
+            </Box>
+          </CardContent>
         </Card>
       </Box>
 

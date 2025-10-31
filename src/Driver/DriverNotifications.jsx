@@ -11,7 +11,9 @@ import {
   Alert,
   Chip,
   Grid,
-  Avatar
+  Avatar,
+  Paper,
+  BottomNavigation
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -170,22 +172,68 @@ const DriverNotifications = () => {
   }
 
   return (
-    <Box sx={{ bgcolor: '#f6f8fa', minHeight: '100vh' }}>
-    <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Grid item display="flex" alignItems="center" gap={2}>
-            <IconButton color="inherit" onClick={() => navigate(-1)}>
-              <ArrowBackIosNewIcon />
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 10, pt: 14 }}>
+      {/* Header */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(90deg, #004D26, #00A84F)',
+          color: '#fff',
+          p: 2.5,
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
+        }}
+      >
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box display="flex" alignItems="center" gap={2}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }}
+            >
+              <ArrowBackIosNewIcon fontSize="small" />
             </IconButton>
-            <Avatar sx={{ bgcolor: '#fff', color: '#2bb673' }}>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 48, height: 48, fontSize: 20, fontWeight: 'bold' }}>
               {driverInfo.initials}
             </Avatar>
-            <Typography variant="h6">Hello, {driverInfo.name}</Typography>
-          </Grid>
-          <Badge color="error" badgeContent={notificationCount}>
-            <NotificationsIcon />
-          </Badge>
-        </Grid>
+            <Box>
+              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: 13 }}>
+                Hello,
+              </Typography>
+              <Typography variant="h6" fontWeight="bold">
+                {driverInfo.name}
+              </Typography>
+            </Box>
+          </Box>
+
+          <IconButton 
+            sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              color: 'white',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+            }}
+          >
+            <Badge 
+              badgeContent={notificationCount} 
+              sx={{
+                '& .MuiBadge-badge': {
+                  bgcolor: '#dc2626',
+                  color: 'white'
+                }
+              }}
+            >
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+        </Box>
       </Box>
       {error && (
         <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>
@@ -228,7 +276,21 @@ const DriverNotifications = () => {
           ))
         )}
       </Box>
-      <DriverFooter />
+      {/* Bottom Navigation */}
+      <Paper
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000
+        }}
+        elevation={3}
+      >
+        <BottomNavigation showLabels sx={{ backgroundColor: '#f5f5f5' }}>
+          <DriverFooter />
+        </BottomNavigation>
+      </Paper>
     </Box>
   );
 };

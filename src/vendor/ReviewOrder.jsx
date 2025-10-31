@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -10,16 +10,20 @@ import {
   Paper,
   BottomNavigation,
   Container,
-  IconButton
+  IconButton,
+  Badge
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useNavigate, useLocation } from 'react-router-dom';
 import VendorFooter from '../vendorfooter';
+import baseurl from '../baseurl/ApiService';
 
 const ReviewOrder = () => {
   const { state } = useLocation();
   const order = state?.order;
   const navigate = useNavigate();
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const itemsList = order?.items?.split(',') || [];
   const pricesList = order?.prices || [];
@@ -33,6 +37,31 @@ const ReviewOrder = () => {
   const deliveryFee = subtotal > 0 ? 0.1 * subtotal : 0; // 10%
   const tax = subtotal > 0 ? 0.05 * subtotal : 0; // 5%
   const total = subtotal + deliveryFee + tax;
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const authToken = localStorage.getItem('token');
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const vendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
+        if (!vendorId) return;
+        const response = await fetch(`${baseurl}/api/vendor-notification/all/${vendorId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data && data.notifications) {
+          const unreadCount = data.notifications.filter(n => !n.is_read).length;
+          setNotificationCount(unreadCount);
+        }
+      } catch (e) {}
+    };
+    fetchNotifications();
+  }, []);
 
   const handleBack = () => {
     navigate(-1);
@@ -75,6 +104,17 @@ const ReviewOrder = () => {
         <Typography variant="h6" fontWeight="bold" sx={{ flexGrow: 1 }}>
           Review Order #{orderId}
         </Typography>
+        <IconButton
+          onClick={() => navigate('/vendor-notifications')}
+          sx={{
+            backgroundColor: '#FFFFFF4D',
+            color: 'white'
+          }}
+        >
+          <Badge badgeContent={notificationCount} color="error">
+            <NotificationsIcon />
+          </Badge>
+        </IconButton>
       </Box>
 
       <Container sx={{ pt: 2 }}>

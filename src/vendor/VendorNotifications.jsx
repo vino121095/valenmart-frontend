@@ -123,34 +123,21 @@ const VendorNotifications = () => {
   const getNotificationIcon = (type) => {
     switch (type?.toLowerCase()) {
       case 'order':
-        return <AssignmentIcon sx={{ color: '#00B074' }} />;
+        return <AssignmentIcon sx={{ color: '#16a34a' }} />;
       case 'shipping':
-        return <ShippingIcon sx={{ color: '#2196F3' }} />;
+        return <ShippingIcon sx={{ color: '#3b82f6' }} />;
       case 'payment':
-        return <PaymentIcon sx={{ color: '#4CAF50' }} />;
+        return <PaymentIcon sx={{ color: '#16a34a' }} />;
       default:
-        return <NotificationsIcon sx={{ color: '#FFA000' }} />;
-    }
-  };
-
-  const getNotificationColor = (type) => {
-    switch (type?.toLowerCase()) {
-      case 'order':
-        return '#E8F5E9';
-      case 'shipping':
-        return '#E3F2FD';
-      case 'payment':
-        return '#E8F5E9';
-      default:
-        return '#FFF3E0';
+        return <NotificationsIcon sx={{ color: '#f59e0b' }} />;
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#fafafa' }}>
-        <CircularProgress size={40} sx={{ color: '#00B074' }} />
-        <Typography variant="body1" sx={{ mt: 2, color: '#666' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#f8fafc' }}>
+        <CircularProgress size={40} sx={{ color: '#16a34a' }} />
+        <Typography variant="body1" sx={{ mt: 2, color: '#64748b' }}>
           Loading notifications...
         </Typography>
       </Box>
@@ -158,66 +145,146 @@ const VendorNotifications = () => {
   }
 
   return (
-    <Box sx={{ bgcolor: '#f6f8fa', minHeight: '100vh' }}>
-            <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        bgcolor="#00A86B"
-        color="#fff"
-        p={2}
-        mb={2}
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 10, pt: 14 }}>
+      {/* Header */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(90deg, #004D26, #00A84F)',
+          color: '#fff',
+          p: 2.5,
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
+        }}
       >
-        <Box display="flex" alignItems="center" gap={1}>
-          <IconButton color="inherit" onClick={() => navigate(-1)}>
-            <ArrowBackIosNewIcon />
-          </IconButton>
-          <Avatar sx={{ bgcolor: '#ccc' }}>{vendorName?.[0] || 'V'}</Avatar>
-          <Typography variant="h6" fontWeight="bold">
-            Hello, {vendorName}
-          </Typography>
-        </Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box display="flex" alignItems="center" gap={2}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }}
+            >
+              <ArrowBackIosNewIcon fontSize="small" />
+            </IconButton>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 'bold' }}>
+              {vendorName?.[0] || 'V'}
+            </Avatar>
+            <Box>
+              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: 13 }}>
+                Hello,
+              </Typography>
+              <Typography variant="h6" fontWeight="bold">
+                {vendorName}
+              </Typography>
+            </Box>
+          </Box>
 
-        <IconButton sx={{ backgroundColor: '#FFFFFF4D', color: 'white', p: 1 }} onClick={() => navigate('/vendor-notifications')}>
-          <Badge color="error" badgeContent={notificationCount}>
-            <NotificationsIcon sx={{ fontSize: 28 }} />
-          </Badge>
-        </IconButton>
+          <IconButton 
+            sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              color: 'white',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+            }}
+          >
+            <Badge 
+              badgeContent={notificationCount} 
+              sx={{
+                '& .MuiBadge-badge': {
+                  bgcolor: '#dc2626',
+                  color: 'white'
+                }
+              }}
+            >
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+        </Box>
       </Box>
-      {error && (
-        <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>
-      )}
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ px: 2 }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>
+        )}
         {!loading && notifications.length === 0 ? (
-          <Box sx={{ textAlign: 'center', mt: 6, p: 4, bgcolor: 'white', borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-            <NotificationsIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary" fontWeight={600}>No notifications</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>You don't have any notifications yet.</Typography>
+          <Box sx={{ textAlign: 'center', mt: 4, p: 4, bgcolor: 'white', borderRadius: 3, border: '1px solid #e2e8f0' }}>
+            <NotificationsIcon sx={{ fontSize: 56, color: '#cbd5e1', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: '#1e293b', fontWeight: 600 }}>No notifications</Typography>
+            <Typography variant="body2" sx={{ color: '#64748b', mt: 1 }}>You don't have any notifications yet.</Typography>
           </Box>
         ) : (
           notifications.map((notification, index) => (
             <Card
               key={notification.nid || index}
-              sx={{ mb: 2, borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', bgcolor: getNotificationColor(notification.Order?.status), cursor: 'pointer' }}
+              elevation={0}
+              sx={{ 
+                mb: 2, 
+                borderRadius: 3, 
+                border: '1px solid #e2e8f0',
+                bgcolor: notification.is_read ? 'white' : '#f0fdf4',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': { 
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                }
+              }}
               onClick={() => !notification.is_read && markNotificationAsRead(notification.nid)}
             >
-              <CardContent>
+              <CardContent sx={{ p: 2.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <Box sx={{ bgcolor: 'white', borderRadius: '50%', p: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Box sx={{ 
+                    bgcolor: '#dcfce7', 
+                    borderRadius: 2, 
+                    p: 1.5, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}>
                     {getNotificationIcon(notification.Order?.status)}
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Typography variant="subtitle1" fontWeight={600}>Order #{notification.Order?.order_id || notification.Order?.procurement_id}</Typography>
-                      <Chip label={notification.Order?.status || 'New Order'} size="small" sx={{ bgcolor: 'white', color: '#666', fontSize: '0.75rem' }} />
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{notification.message}</Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                      <Typography variant="caption" color="text.secondary">{new Date(notification.createdAt).toLocaleString()}</Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
+                      <Typography variant="subtitle1" fontWeight={600} sx={{ color: '#1e293b' }}>
+                        Order #{notification.Order?.order_id || notification.Order?.procurement_id}
+                      </Typography>
                       {!notification.is_read && (
-                        <Chip label="New" size="small" color="primary" sx={{ fontSize: '0.75rem' }} />
+                        <Chip 
+                          label="New" 
+                          size="small" 
+                          sx={{ 
+                            bgcolor: '#16a34a', 
+                            color: 'white', 
+                            fontSize: '0.7rem',
+                            height: 20,
+                            fontWeight: 600
+                          }} 
+                        />
                       )}
                     </Box>
+                    <Chip 
+                      label={notification.Order?.status || 'New Order'} 
+                      size="small" 
+                      sx={{ 
+                        bgcolor: '#e2e8f0', 
+                        color: '#475569', 
+                        fontSize: '0.7rem',
+                        height: 22,
+                        mb: 1
+                      }} 
+                    />
+                    <Typography variant="body2" sx={{ color: '#64748b', mt: 1 }}>
+                      {notification.message}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#94a3b8', mt: 1, display: 'block' }}>
+                      {new Date(notification.createdAt).toLocaleString()}
+                    </Typography>
                   </Box>
                 </Box>
               </CardContent>

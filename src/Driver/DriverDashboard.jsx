@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Avatar, Badge, Box, Button, Card, CardContent, Container, Divider, Grid, Typography, BottomNavigation, BottomNavigationAction, Paper, CircularProgress, Alert, IconButton } from '@mui/material';
-import { Notifications, Dashboard, Assignment, Person, ListAlt, ArrowBack } from '@mui/icons-material';
+import { Notifications, Dashboard, Assignment, Person, ListAlt, ArrowBack, LocalShipping, CheckCircle, Schedule, TrendingUp } from '@mui/icons-material';
 import DriverFooter from '../driverfooter';
 import baseurl from '../baseurl/ApiService';
 import DriverNotifications from './DriverNotifications';
@@ -200,12 +200,7 @@ export default function DriverDashboard() {
         location: order.CustomerProfile?.institution_name || 'Unknown Location',
         address: `${order.address || 'Address not available'}, ${order.city || ''}, ${order.state || ''}, ${order.postal_code || ''}`,
         time: order.delivery_time || 'Time not set',
-        action:
-          order.status === 'Waiting for Approval'
-            ? 'Start Delivery'
-            : order.status === 'Out for Delivery'
-            ? 'Out for Delivery'
-            : 'View Details',
+        action: 'Start Delivery',
         status: order.status || 'pending'
       }));
 
@@ -348,93 +343,244 @@ export default function DriverDashboard() {
   }
 
   return (
-    <Box sx={{ bgcolor: '#f5f7fa', minHeight: '100vh', pb: 7 }}>
-      <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Grid item display="flex" alignItems="center" gap={2}>
-          <Avatar sx={{ width: 64, height: 64 }} src={driverInfo.profileImage || undefined}>
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 10, pt: 14 }}>
+      {/* Header */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(90deg, #004D26, #00A84F)',
+          color: '#fff',
+          p: 2.5,
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
+        }}
+      >
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box display="flex" alignItems="center" gap={2}>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 48, height: 48, fontSize: 20, fontWeight: 'bold' }} src={driverInfo.profileImage || undefined}>
               {!driverInfo.profileImage && driverInfo.initials}
             </Avatar>
-            <Typography variant="h6">Hello, {driverInfo.name}</Typography>
-          </Grid>
-          <Badge color="error" badgeContent={notificationCount}>
-            <Notifications onClick={handlenotification} />
-          </Badge>
-        </Grid>
+            <Box>
+              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: 13 }}>
+                Welcome back
+              </Typography>
+              <Typography variant="h6" fontWeight="bold">
+                {driverInfo.name}
+              </Typography>
+            </Box>
+          </Box>
+
+          <IconButton 
+            sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              color: 'white', 
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+            }} 
+            onClick={handlenotification}
+          >
+            <Badge color="error" badgeContent={notificationCount}>
+              <Notifications sx={{ fontSize: 26 }} />
+            </Badge>
+          </IconButton>
+        </Box>
       </Box>
 
-      <Container sx={{ mt: 3 }}>
-        <Grid container spacing={2}>
+      <Container sx={{ px: 2 }}>
+        <Grid container spacing={2} mb={3}>
           <Grid item xs={6}>
-            <Card sx={{ textAlign: 'center' }}>
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">Pending Tasks</Typography>
-                <Typography variant="h5">{pendingTasks}</Typography>
+            <Card sx={{ 
+              bgcolor: '#fff3e0',
+              borderRadius: 3,
+              border: '2px solid #ffb74d',
+              boxShadow: 'none'
+            }}>
+              <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                <Schedule sx={{ fontSize: 36, color: '#f57c00', mb: 1 }} />
+                <Typography variant="h4" fontWeight="bold" color="#f57c00">
+                  {pendingTasks}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" fontWeight="500">Pending Tasks</Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item xs={6}>
-            <Card sx={{ textAlign: 'center' }}>
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">Completed Tasks</Typography>
-                <Typography variant="h5">{completedTasks}</Typography>
+            <Card sx={{ 
+              bgcolor: '#e8f5e9',
+              borderRadius: 3,
+              border: '2px solid #81c784',
+              boxShadow: 'none'
+            }}>
+              <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                <CheckCircle sx={{ fontSize: 36, color: '#43a047', mb: 1 }} />
+                <Typography variant="h4" fontWeight="bold" color="#43a047">
+                  {completedTasks}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" fontWeight="500">Completed</Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        <Box mt={4}>
-          <Typography variant="h6" gutterBottom>Upcoming Tasks</Typography>
-          
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress color="success" />
-            </Box>
-          ) : deliveries.length === 0 ? (
-            <Card sx={{ p: 3, textAlign: 'center' }}>
-              <Typography variant="body1" color="text.secondary">
-                No upcoming tasks available
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+          <Typography variant="h6" fontWeight="bold">Upcoming Tasks</Typography>
+          <Box display="flex" alignItems="center" gap={0.5} sx={{ color: '#00A84F' }}>
+            <TrendingUp fontSize="small" />
+            <Typography variant="body2" fontWeight="600">{deliveries.length} Active</Typography>
+          </Box>
+        </Box>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress color="success" />
+          </Box>
+        ) : deliveries.length === 0 ? (
+            <Card sx={{ 
+              p: 4, 
+              textAlign: 'center',
+              borderRadius: 3,
+              border: '2px dashed #e0e0e0',
+              bgcolor: '#fafafa'
+            }}>
+              <LocalShipping sx={{ fontSize: 64, color: '#bdbdbd', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" fontWeight="500">
+                No upcoming tasks
+              </Typography>
+              <Typography variant="body2" color="text.secondary" mt={1}>
+                You're all caught up! Check back later.
               </Typography>
             </Card>
-          ) : (
-            deliveries.map((task, index) => (
-              <Card key={index} sx={{ display: 'flex', mb: 2 }}>
-                <Box sx={{ width: 5, bgcolor: task.type === 'Pickup' ? 'green' : 'blue' }} />
-                <CardContent sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2">Order {task.id} - {task.type}</Typography>
-                  <Typography variant="body2">{task.location}</Typography>
-                  <Typography variant="body2" color="text.secondary">{formatAddress(task)}</Typography>
-                  <Typography variant="body2" color="text.secondary">{task.order_date}</Typography>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    sx={{ mt: 1, bgcolor: task.type === 'Pickup' ? 'green' : 'blue', color: 'white' }}
-                    onClick={() => {
-                      if (task.action === 'Start Delivery') {
-                        handleStartDelivery(task.id);
-                      }
-                      else{
-                        handlePickup(task.id);
-                      }
-                    }}
-                    disabled={task.status === 'Out for Delivery'}
-                  >
-                    {task.status === 'Out for Delivery' ? 'Out for Delivery' : task.action}
-                  </Button>
-                </CardContent>
+        ) : (
+          deliveries.map((task, index) => (
+              <Card key={index} sx={{ 
+                mb: 2,
+                borderRadius: 3,
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                border: '1px solid #f0f0f0',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                  transform: 'translateY(-2px)'
+                }
+              }}>
+                <Box display="flex">
+                  <Box sx={{ 
+                    width: 6, 
+                    background: task.type === 'Pickup' 
+                      ? 'linear-gradient(180deg, #00A84F, #004D26)' 
+                      : 'linear-gradient(180deg, #2196F3, #1565C0)'
+                  }} />
+                  <CardContent sx={{ flex: 1, p: 2.5 }}>
+                    <Box display="flex" alignItems="center" justifyContent="space-between" mb={1.5}>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Box sx={{
+                          bgcolor: task.type === 'Pickup' ? '#dcfce7' : '#e3f2fd',
+                          color: task.type === 'Pickup' ? '#00A84F' : '#2196F3',
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: 2,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: 0.5
+                        }}>
+                          {task.type}
+                        </Box>
+                        <Typography variant="subtitle2" fontWeight="bold" color="text.primary">
+                          #{task.id}
+                        </Typography>
+                      </Box>
+                      <Box sx={{
+                        bgcolor: task.status === 'Out for Delivery' ? '#fff3e0' : '#f3e5f5',
+                        color: task.status === 'Out for Delivery' ? '#f57c00' : '#7b1fa2',
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: 2,
+                        fontSize: 11,
+                        fontWeight: 600
+                      }}>
+                        {task.status === 'Out for Delivery' ? 'In Progress' : 'Ready'}
+                      </Box>
+                    </Box>
+                    <Typography variant="body1" fontWeight="600" mb={0.5}>
+                      {task.location}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" mb={0.5} sx={{ fontSize: 13 }}>
+                      {formatAddress(task)}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="flex" alignItems="center" gap={0.5}>
+                      <Schedule sx={{ fontSize: 14 }} />
+                      {task.time}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      sx={{ 
+                        mt: 2,
+                        py: 1.2,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: 14,
+                        color: 'white',
+                        background: task.status === 'Out for Delivery'
+                          ? 'linear-gradient(90deg, #ff9800, #f57c00)'
+                          : task.type === 'Pickup' 
+                            ? 'linear-gradient(90deg, #00A84F, #004D26)' 
+                            : 'linear-gradient(90deg, #2196F3, #1565C0)',
+                        boxShadow: task.status === 'Out for Delivery' ? '0 4px 12px rgba(245, 124, 0, 0.3)' : '0 4px 12px rgba(0, 168, 79, 0.3)',
+                        '&:hover': {
+                          boxShadow: task.status === 'Out for Delivery' ? '0 6px 16px rgba(245, 124, 0, 0.4)' : '0 6px 16px rgba(0, 168, 79, 0.4)',
+                          transform: 'translateY(-1px)'
+                        },
+                        '&:disabled': {
+                          background: '#e0e0e0',
+                          color: '#9e9e9e'
+                        }
+                      }}
+                      onClick={() => {
+                        if (task.action === 'Start Delivery') {
+                          handleStartDelivery(task.id);
+                        } else {
+                          handlePickup(task.id);
+                        }
+                      }}
+                      disabled={task.status === 'Out for Delivery'}
+                    >
+                      {task.status === 'Out for Delivery' ? '🚚 Out for Delivery' : `🚀 ${task.action}`}
+                    </Button>
+                  </CardContent>
+                </Box>
               </Card>
-            ))
-          )}
-        </Box>
+          ))
+        )}
       </Container>
 
-      <DriverFooter />
+      {/* Bottom Navigation */}
+      <Paper
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000
+        }}
+        elevation={3}
+      >
+        <BottomNavigation showLabels sx={{ backgroundColor: '#f5f5f5' }}>
+          <DriverFooter />
+        </BottomNavigation>
+      </Paper>
 
     </Box>
   );

@@ -44,10 +44,10 @@ const DriverFooter = () => {
         onChange={handleChange}
         sx={{ backgroundColor: '#f5f5f5' }}
       >
-        <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} sx={{ color: value === 0 ? '#4CAF50' : '#888' }} />
-        <BottomNavigationAction label="Tasks" icon={<TasksIcon />} sx={{ color: value === 1 ? '#4CAF50' : '#888' }} />
-        <BottomNavigationAction label="Activity" icon={<ActivityIcon />} sx={{ color: value === 2 ? '#4CAF50' : '#888' }} />
-        <BottomNavigationAction label="Profile" icon={<ProfileIcon />} sx={{ color: value === 3 ? '#4CAF50' : '#888' }} />
+        <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} sx={{ color: value === 0 ? '#4CAF50' : '#000' }} />
+        <BottomNavigationAction label="Tasks" icon={<TasksIcon />} sx={{ color: value === 1 ? '#4CAF50' : '#000' }} />
+        <BottomNavigationAction label="Activity" icon={<ActivityIcon />} sx={{ color: value === 2 ? '#4CAF50' : '#000' }} />
+        <BottomNavigationAction label="Profile" icon={<ProfileIcon />} sx={{ color: value === 3 ? '#4CAF50' : '#000' }} />
       </BottomNavigation>
     </Paper>
   );

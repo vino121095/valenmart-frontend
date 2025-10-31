@@ -535,7 +535,7 @@ const OrderTrackingPage = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ pt: 10, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
 
       <Box sx={{ flex: 1, p: 3, maxWidth: 1200, mx: 'auto', width: '100%' }}>

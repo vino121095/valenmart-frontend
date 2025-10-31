@@ -64,9 +64,11 @@ const VendorFooter = () => {
         right: 0,
         zIndex: 1000,
         width: '100%',
-        minWidth: '320px'
+        minWidth: '320px',
+        borderRadius: '24px 24px 0 0',
+        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)'
       }} 
-      elevation={3}
+      elevation={0}
     >
       <BottomNavigation
         showLabels
@@ -76,51 +78,62 @@ const VendorFooter = () => {
           navigate(newPath);
         }}
         sx={{ 
-          backgroundColor: '#f5f5f5',
-          minHeight: '56px',
+          background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          minHeight: '64px',
+          borderRadius: '24px 24px 0 0',
+          paddingTop: '8px',
           '& .MuiBottomNavigationAction-root': {
             minWidth: 'auto',
-            padding: isVerySmall ? '4px 2px' : isMobile ? '6px 4px' : '6px 12px',
+            padding: isVerySmall ? '4px 2px' : isMobile ? '6px 4px' : '8px 12px',
+            color: '#64748b',
+            transition: 'all 0.3s ease',
+            borderRadius: '12px',
             '& .MuiBottomNavigationAction-label': {
-              fontSize: isVerySmall ? '0.65rem' : isMobile ? '0.7rem' : '0.75rem',
+              fontSize: isVerySmall ? '0.7rem' : isMobile ? '0.8rem' : '0.85rem',
               lineHeight: 1.2,
               whiteSpace: 'nowrap',
               overflow: 'visible',
               textOverflow: 'clip',
               maxWidth: 'none',
-              textAlign: 'center'
+              textAlign: 'center',
+              fontWeight: 500,
+              marginTop: '4px'
             },
             '& .MuiSvgIcon-root': {
-              fontSize: isVerySmall ? '1.1rem' : isMobile ? '1.2rem' : '1.5rem',
-            }
-          },
-          '& .MuiBottomNavigationAction-root.Mui-selected': {
-            color: '#4CAF50',
-            '& .MuiBottomNavigationAction-label': {
-              color: '#4CAF50',
+              fontSize: isVerySmall ? '1.2rem' : isMobile ? '1.3rem' : '1.6rem'
+            },
+            '&.Mui-selected': {
+              color: '#16a34a',
+              backgroundColor: '#dcfce7',
+              '& .MuiBottomNavigationAction-label': {
+                fontWeight: 600
+              },
+              '& .MuiSvgIcon-root': {
+                transform: 'scale(1.1)'
+              }
             }
           }
         }}
       >
         <BottomNavigationAction 
           label={getLabel("Dashboard")} 
-          icon={<IncompleteCircleIcon />} 
+          icon={<IncompleteCircleIcon />}
         />
         <BottomNavigationAction 
           label={getLabel("Orders")} 
-          icon={<ListAltIcon />} 
+          icon={<ListAltIcon />}
         />
         <BottomNavigationAction 
           label={getLabel("Add")} 
-          icon={<AddCircleOutlineIcon />} 
+          icon={<AddCircleOutlineIcon />}
         />
         <BottomNavigationAction 
           label={getLabel("Reports")} 
-          icon={<ReceiptIcon />} 
+          icon={<ReceiptIcon />}
         />
         <BottomNavigationAction 
           label={getLabel("Profile")} 
-          icon={<PersonIcon />} 
+          icon={<PersonIcon />}
         />
       </BottomNavigation>
     </Paper>

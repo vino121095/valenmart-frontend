@@ -13,11 +13,11 @@ import { useAuth } from './App';
 
 function Header({
   showBackArrow = true,
-  label = 'Hello SRM',
+  label = '',
   showNotifications = true,
   showCart = true,
   showAvatar = true,
-  avatarText = 'S',
+  avatarText = '',
   showFilter = false,
   disableInstituteName = false,
 }) {
@@ -221,7 +221,12 @@ function Header({
     <Box
       component="header"
       sx={{
-        backgroundColor: '#00B074',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1100,
+        background: 'linear-gradient(90deg, #004D26, #00A84F)',
         p: { xs: 2, sm: 3, md: 2 },
         display: 'flex',
         justifyContent: 'space-between',

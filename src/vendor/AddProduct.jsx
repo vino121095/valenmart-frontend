@@ -440,47 +440,71 @@ const AddProduct = () => {
 
   return (
     <>
-      <Box bgcolor="#F4F4F6" minHeight="100vh" pb={12}>
-        <Box bgcolor="#00A86B" color="white" px={2} py={2} display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center">
-            <IconButton
-              onClick={handleBack}
-              sx={{ backgroundColor: '#FFFFFF4D', color: 'white', borderRadius: '50%', p: 1, mr: 1 }}
-            >
-              <ArrowBackIcon sx={{ fontSize: 28 }} />
-            </IconButton>
-            <Typography variant="h6" fontWeight="bold">Request Product</Typography>
-          </Box>
-          <Badge badgeContent={notificationCount} color="error">
+      <Box bgcolor="#f8fafc" minHeight="100vh" pb={12} pt={14}>
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            background: 'linear-gradient(90deg, #004D26, #00A84F)',
+            color: '#fff',
+            p: 2.5,
+            borderRadius: '0 0 24px 24px',
+            boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
+          }}
+        >
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center" gap={2}>
+              <IconButton
+                onClick={handleBack}
+                size="small"
+                sx={{ 
+                  backgroundColor: 'rgba(255,255,255,0.2)', 
+                  color: 'white',
+                  '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+                }}
+              >
+                <ArrowBackIcon fontSize="small" />
+              </IconButton>
+              <Typography variant="h6" fontWeight="bold">Request Product</Typography>
+            </Box>
             <IconButton 
               onClick={handleNotificationClick}
-              sx={{ color: 'white' }}
+              sx={{ 
+                backgroundColor: 'rgba(255,255,255,0.2)', 
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }}
             >
-              <Notifications />
+              <Badge badgeContent={notificationCount} color="error">
+                <Notifications />
+              </Badge>
             </IconButton>
-          </Badge>
+          </Box>
         </Box>
 
-        <Container maxWidth="sm" sx={{ mt: 4 }}>
+        <Container maxWidth="sm">
           {/* Error Alert */}
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setError('')}>
               {error}
             </Alert>
           )}
 
           {/* Success Alert */}
           {success && (
-            <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+            <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setSuccess('')}>
               {success}
             </Alert>
           )}
 
-          <Card elevation={2}>
-            <CardContent>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>Request Product</Typography>
+          <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ color: '#1e293b' }}>Add Product Details</Typography>
               <Typography variant="body2" color="text.secondary" mb={3}>
-                Enter product details and request approval
+                Fill in the product information below
               </Typography>
 
               {/* Image Upload */}
@@ -496,7 +520,11 @@ const AddProduct = () => {
                     <Button 
                       size="small" 
                       onClick={() => setProductData(prev => ({ ...prev, image: null, imageUrl: '' }))}
-                      sx={{ mt: 1 }}
+                      sx={{ 
+                        mt: 1,
+                        color: '#dc2626',
+                        '&:hover': { bgcolor: '#fee2e2' }
+                      }}
                     >
                       Remove Image
                     </Button>
@@ -505,13 +533,17 @@ const AddProduct = () => {
                   <Box
                     onClick={handleClick}
                     sx={{
-                      border: '2px dashed #E0E0E0',
-                      borderRadius: 2,
+                      border: '2px dashed #cbd5e1',
+                      borderRadius: 3,
                       textAlign: 'center',
                       padding: 4,
                       cursor: 'pointer',
-                      backgroundColor: '#FAFAFA',
-                      '&:hover': { borderColor: '#00A86B' },
+                      backgroundColor: '#f8fafc',
+                      transition: 'all 0.2s',
+                      '&:hover': { 
+                        borderColor: '#16a34a',
+                        backgroundColor: '#f0fdf4'
+                      },
                     }}
                   >
                     <input
@@ -524,8 +556,8 @@ const AddProduct = () => {
                     <IconButton
                       disableRipple
                       sx={{
-                        backgroundColor: '#E6F4EA',
-                        color: '#00A86B',
+                        backgroundColor: '#dcfce7',
+                        color: '#16a34a',
                         width: 56,
                         height: 56,
                         mb: 1,
@@ -680,8 +712,18 @@ const AddProduct = () => {
               </Box>
 
               <Button
-                variant="outlined"
-                sx={{ mt: 1, color: '#00B074', borderColor: '#00B074' }}
+                variant="contained"
+                fullWidth
+                sx={{ 
+                  mt: 2,
+                  background: 'linear-gradient(90deg, #004D26, #00A84F)',
+                  color: 'white !important',
+                  py: 1.5,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': { background: 'linear-gradient(90deg, #003D1F, #008A40)' }
+                }}
                 onClick={handleAddProduct}
                 disabled={!productData.name || !productData.price || !productData.stock || !productData.type}
               >
@@ -690,69 +732,141 @@ const AddProduct = () => {
 
               {productList.length > 0 && (
                 <>
-                  <Typography variant="h6" fontWeight="bold" mt={4} mb={2}>
-                    Products List ({productList.length})
-                  </Typography>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mt={4} mb={2}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#1e293b' }}>
+                      Products List
+                    </Typography>
+                    <Box 
+                      sx={{ 
+                        bgcolor: '#dcfce7', 
+                        color: '#16a34a', 
+                        px: 2, 
+                        py: 0.5, 
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        fontSize: 14
+                      }}
+                    >
+                      {productList.length}
+                    </Box>
+                  </Box>
                   {productList.map((product, index) => (
-                    <Card key={product.id || index} elevation={1} sx={{ mb: 2 }}>
-                      <CardContent>
+                    <Card key={product.id || index} elevation={0} sx={{ mb: 2, borderRadius: 2, border: '1px solid #e2e8f0' }}>
+                      <CardContent sx={{ p: 2 }}>
                         <Grid container spacing={2} alignItems="center">
                           <Grid item>
-                            <Avatar
-                              src={product.imageUrl}
-                              alt={product.name}
-                              sx={{ width: 56, height: 56 }}
-                              variant="rounded"
-                            />
+                            {product.imageUrl ? (
+                              <Avatar
+                                src={product.imageUrl}
+                                alt={product.name}
+                                sx={{ width: 60, height: 60, borderRadius: 2 }}
+                                variant="rounded"
+                              />
+                            ) : (
+                              <Avatar
+                                sx={{ 
+                                  width: 60, 
+                                  height: 60, 
+                                  borderRadius: 2,
+                                  bgcolor: '#dcfce7',
+                                  color: '#16a34a',
+                                  fontSize: 24,
+                                  fontWeight: 'bold'
+                                }}
+                                variant="rounded"
+                              >
+                                {product.name?.charAt(0).toUpperCase()}
+                              </Avatar>
+                            )}
                           </Grid>
                           <Grid item xs>
-                            <Typography variant="subtitle1" fontWeight="bold">{product.name}</Typography>
-                            <Typography variant="body2">Category: {product.category || 'Not specified'}</Typography>
-                            <Typography variant="body2">Type: {product.type}</Typography>
-                            <Typography variant="body2">Price: ₹{product.price}/kg | Stock: {product.stock} kg</Typography>
+                            <Typography variant="subtitle1" fontWeight="600" sx={{ color: '#1e293b', mb: 0.5 }}>{product.name}</Typography>
+                            <Typography variant="body2" color="text.secondary" fontSize={13}>Category: {product.category || 'Not specified'}</Typography>
+                            <Typography variant="body2" color="text.secondary" fontSize={13}>Type: {product.type}</Typography>
+                            <Typography variant="body2" fontSize={13} sx={{ mt: 0.5 }}>₹{product.price}/kg • {product.stock} kg</Typography>
                             {(product.cgst > 0 || product.sgst > 0) && (
-                              <Typography variant="body2">
+                              <Typography variant="body2" fontSize={12} color="text.secondary">
                                 Tax: CGST {product.cgst}% | SGST {product.sgst}%
                               </Typography>
                             )}
-                            <Typography variant="body2" color="success.main" fontWeight="bold">
+                            <Typography variant="body2" sx={{ color: '#16a34a', fontWeight: 600, mt: 0.5 }}>
                               Total: ₹{(parseFloat(product.price) * parseFloat(product.stock)).toFixed(2)}
                             </Typography>
                           </Grid>
                           <Grid item>
-                            <IconButton onClick={() => handleEdit(index)} disabled={isSubmitting}>
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton onClick={() => handleDelete(index)} disabled={isSubmitting}>
-                              <DeleteIcon />
-                            </IconButton>
+                            <Box display="flex" flexDirection="column" gap={0.5}>
+                              <IconButton 
+                                onClick={() => handleEdit(index)} 
+                                disabled={isSubmitting}
+                                size="small"
+                                sx={{ 
+                                  bgcolor: '#dbeafe',
+                                  color: '#2563eb',
+                                  '&:hover': { bgcolor: '#bfdbfe' }
+                                }}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton 
+                                onClick={() => handleDelete(index)} 
+                                disabled={isSubmitting}
+                                size="small"
+                                sx={{ 
+                                  bgcolor: '#fee2e2',
+                                  color: '#dc2626',
+                                  '&:hover': { bgcolor: '#fecaca' }
+                                }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
                           </Grid>
                         </Grid>
                       </CardContent>
                     </Card>
                   ))}
 
-                  <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-                    <Typography variant="body2" fontWeight="bold">
-                      Summary:
+                  <Box sx={{ mt: 2, p: 2.5, bgcolor: '#f0fdf4', borderRadius: 2, border: '1px solid #bbf7d0' }}>
+                    <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#1e293b', mb: 1 }}>
+                      Summary
                     </Typography>
-                    <Typography variant="body2">
-                      Total Items: {productList.reduce((sum, p) => sum + parseFloat(p.stock || 0), 0)} kg
-                    </Typography>
-                    <Typography variant="body2">
-                      Total Value: ₹{productList.reduce((sum, p) => sum + (parseFloat(p.price || 0) * parseFloat(p.stock || 0)), 0).toFixed(2)}
-                    </Typography>
+                    <Box display="flex" justifyContent="space-between" mb={0.5}>
+                      <Typography variant="body2" color="text.secondary">
+                        Total Items:
+                      </Typography>
+                      <Typography variant="body2" fontWeight="600">
+                        {productList.reduce((sum, p) => sum + parseFloat(p.stock || 0), 0)} kg
+                      </Typography>
+                    </Box>
+                    <Box display="flex" justifyContent="space-between">
+                      <Typography variant="body2" color="text.secondary">
+                        Total Value:
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold" sx={{ color: '#16a34a' }}>
+                        ₹{productList.reduce((sum, p) => sum + (parseFloat(p.price || 0) * parseFloat(p.stock || 0)), 0).toFixed(2)}
+                      </Typography>
+                    </Box>
                   </Box>
                 </>
               )}
 
               <Button
                 variant="contained"
-                color="success"
                 fullWidth
                 onClick={handleRequestApproval}
                 disabled={productList.length === 0 || isSubmitting}
-                sx={{ backgroundColor: '#00B074', mt: 3 }}
+                sx={{ 
+                  background: 'linear-gradient(90deg, #004D26, #00A84F)',
+                  color: 'white !important',
+                  mt: 3,
+                  py: 1.5,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: 16,
+                  '&:hover': { background: 'linear-gradient(90deg, #003D1F, #008A40)' },
+                  '&:disabled': { opacity: 0.6 }
+                }}
               >
                 {isSubmitting ? 'Submitting...' : 'Request Approval'}
               </Button>

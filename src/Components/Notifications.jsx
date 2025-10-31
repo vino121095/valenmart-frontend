@@ -108,28 +108,17 @@ const Notifications = ({customerId}) => {
   const getNotificationIcon = (type) => {
     switch (type?.toLowerCase()) {
       case 'order':
-        return <AssignmentIcon sx={{ color: '#00B074' }} />;
+        return <AssignmentIcon sx={{ color: '#16a34a' }} />;
       case 'shipping':
-        return <ShippingIcon sx={{ color: '#2196F3' }} />;
+        return <ShippingIcon sx={{ color: '#16a34a' }} />;
       case 'payment':
-        return <PaymentIcon sx={{ color: '#4CAF50' }} />;
+        return <PaymentIcon sx={{ color: '#16a34a' }} />;
       default:
-        return <NotificationsIcon sx={{ color: '#FFA000' }} />;
+        return <NotificationsIcon sx={{ color: '#16a34a' }} />;
     }
   };
 
-  const getNotificationColor = (type) => {
-    switch (type?.toLowerCase()) {
-      case 'order':
-        return '#E8F5E9';
-      case 'shipping':
-        return '#E3F2FD';
-      case 'payment':
-        return '#E8F5E9';
-      default:
-        return '#FFF3E0';
-    }
-  };
+
 
   if (loading) {
     return (
@@ -139,9 +128,9 @@ const Notifications = ({customerId}) => {
         justifyContent: 'center', 
         alignItems: 'center', 
         height: '100vh',
-        bgcolor: '#fafafa'
+        bgcolor: '#f8fafc'
       }}>
-        <CircularProgress size={40} sx={{ color: '#00B074' }} />
+        <CircularProgress size={40} sx={{ color: '#10b981' }} />
         <Typography variant="body1" sx={{ mt: 2, color: '#666' }}>
           Loading notifications...
         </Typography>
@@ -150,16 +139,16 @@ const Notifications = ({customerId}) => {
   }
 
   return (
-    <Box sx={{ bgcolor: '#f6f8fa', minHeight: '100vh' }}>
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pt: 10 }}>
       <Header label="Notifications" showBackArrow={true} />
 
       {error && (
-        <Alert severity="error" sx={{ m: 2 }}>
+        <Alert severity="error" sx={{ m: 2, borderRadius: 2 }}>
           {error}
         </Alert>
       )}
 
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: 2, mb: 10 }}>
         {!loading && notifications.length === 0 ? (
           <Box sx={{ 
             textAlign: 'center', 
@@ -167,9 +156,9 @@ const Notifications = ({customerId}) => {
             p: 4,
             bgcolor: 'white',
             borderRadius: 3,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            border: '1px solid #e2e8f0'
           }}>
-            <NotificationsIcon sx={{ fontSize: 48, color: '#ccc', mb: 2 }} />
+            <NotificationsIcon sx={{ fontSize: 48, color: '#cbd5e1', mb: 2 }} />
             <Typography variant="h6" color="text.secondary" fontWeight={600}>
               No notifications
             </Typography>
@@ -183,19 +172,25 @@ const Notifications = ({customerId}) => {
             return (
               <Card 
                 key={notification.nid || index}
+                elevation={0}
                 sx={{ 
                   mb: 2, 
                   borderRadius: 3,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  bgcolor: getNotificationColor(notification.Order?.status),
-                  cursor: 'pointer'
+                  border: '1px solid #e2e8f0',
+                  bgcolor: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    transform: 'translateY(-2px)'
+                  }
                 }}
                 onClick={() => !notification.is_read && markNotificationAsRead(notification.nid)}
               >
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                     <Box sx={{ 
-                      bgcolor: 'white', 
+                      bgcolor: '#dcfce7', 
                       borderRadius: '50%', 
                       p: 1,
                       display: 'flex',
@@ -214,9 +209,10 @@ const Notifications = ({customerId}) => {
                           label={notification.Order?.status || 'New Order'}
                           size="small"
                           sx={{ 
-                            bgcolor: 'white',
-                            color: '#666',
-                            fontSize: '0.75rem'
+                            bgcolor: '#dcfce7',
+                            color: '#16a34a',
+                            fontSize: '0.75rem',
+                            fontWeight: 600
                           }}
                         />
                       </Box>
@@ -233,8 +229,12 @@ const Notifications = ({customerId}) => {
                           <Chip 
                             label="New"
                             size="small"
-                            color="primary"
-                            sx={{ fontSize: '0.75rem' }}
+                            sx={{ 
+                              bgcolor: '#10b981',
+                              color: 'white',
+                              fontSize: '0.75rem',
+                              fontWeight: 600
+                            }}
                           />
                         )}
                       </Box>

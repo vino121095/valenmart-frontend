@@ -331,82 +331,99 @@ const calculatePerformanceMetrics = () => {
     <>
       <Box
         sx={{
-          bgcolor: '#00A86B',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(90deg, #004D26, #00A84F)',
           color: '#fff',
-          p: 2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          p: 2.5,
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
         }}
       >
-        <Box display="flex" alignItems="center">
-          <IconButton
-            onClick={handleBack}
-            sx={{
-              backgroundColor: '#FFFFFF4D',
-              color: 'white',
-              borderRadius: '50%',
-              p: 1,
-              mr: 2,
-              '&:hover': { backgroundColor: '#FFFFFF80' },
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" fontWeight="bold">
-            Reports
-          </Typography>
-        </Box>
-        <Badge badgeContent={notificationCount} color="error">
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box display="flex" alignItems="center" gap={2}>
+            <IconButton
+              onClick={handleBack}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }}
+            >
+              <ArrowBackIcon fontSize="small" />
+            </IconButton>
+            <Typography variant="h6" fontWeight="bold">
+              Reports
+            </Typography>
+          </Box>
           <IconButton 
             onClick={handleNotificationClick}
-            sx={{ color: 'white' }}
+            sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+            }}
           >
-            <NotificationsIcon />
+            <Badge badgeContent={notificationCount} color="error">
+              <NotificationsIcon />
+            </Badge>
           </IconButton>
-        </Badge>
+        </Box>
       </Box>
 
-      <Tabs
-        value={tabIndex}
-        onChange={handleTabChange}
-        centered
-        variant="fullWidth"
-        sx={{
-          '& .MuiTab-root': { fontWeight: 600, color: '00A859' },
-          '& .Mui-selected': { color: '#00A859' },
-          '& .MuiTabs-indicator': { backgroundColor: '#00A859' },
-        }}
-      >
-        <Tab label="Supply" />
-        <Tab label="Revenue" />
-        <Tab label="Analysis" />
-      </Tabs>
+      <Box sx={{ px: 2, mb: 2, pt: 14 }}>
+        <Tabs
+          value={tabIndex}
+          onChange={handleTabChange}
+          variant="fullWidth"
+          sx={{
+            '& .MuiTab-root': { 
+              fontWeight: 600, 
+              textTransform: 'none',
+              fontSize: 14
+            },
+            '& .Mui-selected': { color: '#16a34a' },
+            '& .MuiTabs-indicator': { 
+              backgroundColor: '#16a34a',
+              height: 3,
+              borderRadius: '3px 3px 0 0'
+            },
+          }}
+        >
+          <Tab label="Supply" />
+          <Tab label="Revenue" />
+          <Tab label="Analysis" />
+        </Tabs>
+      </Box>
 
-      <Container maxWidth="sm" sx={{ mb: 10, px: 2, py: 2, bgcolor: '#F4F4F6' }} ref={reportRef}>
+      <Container maxWidth="sm" sx={{ mb: 10, px: 2, bgcolor: '#f8fafc' }} ref={reportRef}>
         {/* --- Tab 1: Supply --- */}
         {tabIndex === 0 && (
           <>
-            <Box display="flex" justifyContent="space-between" mt={3} mb={2}>
-              <Card sx={{ width: '48%', backgroundColor: '#f8f8f8' }}>
-                <CardContent>
-                  <Typography variant="subtitle2">Total Supply</Typography>
-                  <Typography variant="h6" fontWeight="bold">{totalSupply} kg</Typography>
-                  <Typography color="green" fontSize={12}>↑ 12% from last period</Typography>
+            <Box display="flex" gap={2} mb={3}>
+              <Card elevation={0} sx={{ flex: 1, borderRadius: 3, border: '1px solid #e2e8f0', background: 'linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%)' }}>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: 13 }}>Total Supply</Typography>
+                  <Typography variant="h5" fontWeight="bold" sx={{ color: '#16a34a' }}>{totalSupply} kg</Typography>
+                  <Typography sx={{ color: '#16a34a', fontSize: 12, mt: 0.5 }}>↑ 12% from last period</Typography>
                 </CardContent>
               </Card>
-              <Card sx={{ width: '48%', backgroundColor: '#f8f8f8' }}>
-                <CardContent>
-                  <Typography variant="subtitle2">Total Revenue</Typography>
-                  <Typography variant="h6" fontWeight="bold">₹{totalRevenue.toFixed(2)}</Typography>
-                  <Typography color="green" fontSize={12}>↑ 8% from last period</Typography>
+              <Card elevation={0} sx={{ flex: 1, borderRadius: 3, border: '1px solid #e2e8f0', background: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%)' }}>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: 13 }}>Total Revenue</Typography>
+                  <Typography variant="h5" fontWeight="bold" sx={{ color: '#2563eb' }}>₹{totalRevenue.toFixed(2)}</Typography>
+                  <Typography sx={{ color: '#2563eb', fontSize: 12, mt: 0.5 }}>↑ 8% from last period</Typography>
                 </CardContent>
               </Card>
             </Box>
 
-            <Typography variant="subtitle1" mt={3} mb={1}>Supply History</Typography>
-            <Card>
-              <CardContent>
+            <Typography variant="h6" fontWeight="bold" mb={2} sx={{ color: '#1e293b' }}>Supply History</Typography>
+            <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0' }}>
+              <CardContent sx={{ p: 2.5 }}>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={supplyHistoryData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -419,9 +436,9 @@ const calculatePerformanceMetrics = () => {
               </CardContent>
             </Card>
 
-            <Typography variant="subtitle1" mt={3} mb={1}>Top Products</Typography>
-            <Card>
-              <CardContent>
+            <Typography variant="h6" fontWeight="bold" mt={3} mb={2} sx={{ color: '#1e293b' }}>Top Products</Typography>
+            <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0' }}>
+              <CardContent sx={{ p: 2.5 }}>
                 {topProducts.map(product => (
                   <Box key={product.name} mb={2}>
                     <Box display="flex" justifyContent="space-between" mb={0.5}>
@@ -434,8 +451,8 @@ const calculatePerformanceMetrics = () => {
                       sx={{
                         height: 10,
                         borderRadius: 5,
-                        backgroundColor: '#eee',
-                        '& .MuiLinearProgress-bar': { backgroundColor: '#4caf50' },
+                        backgroundColor: '#e2e8f0',
+                        '& .MuiLinearProgress-bar': { backgroundColor: '#16a34a' },
                       }}
                     />
                   </Box>
@@ -443,12 +460,20 @@ const calculatePerformanceMetrics = () => {
               </CardContent>
             </Card>
 
-            <Box display="flex" justifyContent="space-between" mt={3}>
+            <Box display="flex" gap={2} mt={3}>
               <Button
                 fullWidth
                 variant="contained"
                 startIcon={<DescriptionIcon />}
-                sx={{ bgcolor: '#ccc', mr: 1, color: '#666666' }}
+                sx={{ 
+                  background: 'linear-gradient(90deg, #004D26, #00A84F)',
+                  color: 'white',
+                  py: 1.5,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': { background: 'linear-gradient(90deg, #003D1F, #008A40)' }
+                }}
                 onClick={exportToExcel}
               >
                 Export Excel
@@ -457,7 +482,15 @@ const calculatePerformanceMetrics = () => {
                 fullWidth
                 variant="contained"
                 startIcon={<PictureAsPdfIcon />}
-                sx={{ bgcolor: '#ccc', ml: 1, color: '#666666' }}
+                sx={{ 
+                  background: 'linear-gradient(90deg, #004D26, #00A84F)',
+                  color: 'white',
+                  py: 1.5,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': { background: 'linear-gradient(90deg, #003D1F, #008A40)' }
+                }}
                 onClick={exportToPDF}
               >
                 Export PDF

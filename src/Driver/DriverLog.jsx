@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { AppBar, Box, Button, Card, CardContent, Container, Grid, IconButton, Typography, Tabs, Tab, Avatar, Chip, CircularProgress, Alert } from '@mui/material';
+import { AppBar, Box, Button, Card, CardContent, Container, Grid, IconButton, Typography, Tabs, Tab, Avatar, Chip, CircularProgress, Alert, Paper, BottomNavigation, Badge } from '@mui/material';
 import { ArrowBack, FilterList, LocalShipping, ShoppingCart } from '@mui/icons-material';
 import { Notifications, Dashboard, Assignment, Person, ListAlt } from '@mui/icons-material';
 import DriverFooter from '../driverfooter';
@@ -24,8 +24,28 @@ export default function DriverLog() {
   const [completedDeliveries, setCompletedDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const authToken = localStorage.getItem('token');
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const driverId = userData.id || userData.did || localStorage.getItem('driver_id');
+        if (!driverId) return;
+        const response = await fetch(`${baseurl}/api/driver-notification/all/${driverId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data && data.notifications) {
+          const unreadCount = data.notifications.filter(n => !n.is_read).length;
+          setNotificationCount(unreadCount);
+        }
+      } catch (e) {}
+    };
+    fetchNotifications();
     const fetchCompletedTasks = async () => {
       setLoading(true);
       setError('');
@@ -188,22 +208,55 @@ export default function DriverLog() {
 
 
   return (
-    <Box sx={{ bgcolor: '#f5f7fa', minHeight: '100vh', pb: 7 }}>
-      <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
-        <Grid container justifyContent="space-between" alignItems="center">
-          <Grid item display="flex" alignItems="center">
-            <IconButton color="inherit" onClick={() => navigate(-1)}>
-              <ArrowBack />
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 10, pt: 14 }}>
+      {/* Header */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(90deg, #004D26, #00A84F)',
+          color: '#fff',
+          p: 2.5,
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
+        }}
+      >
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box display="flex" alignItems="center" gap={2}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }}
+            >
+              <ArrowBack fontSize="small" />
             </IconButton>
-            <Typography variant="h6" ml={1}>Activity Logs</Typography>
-          </Grid>
-          <IconButton color="inherit">
-            <FilterList />
+            <Typography variant="h6" fontWeight="bold">
+              Activity Logs
+            </Typography>
+          </Box>
+          <IconButton 
+            onClick={() => navigate('/driver-notifications')}
+            sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              color: 'white',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+            }}
+          >
+            <Badge badgeContent={notificationCount} color="error">
+              <Notifications sx={{ fontSize: 26 }} />
+            </Badge>
           </IconButton>
-        </Grid>
+        </Box>
       </Box>
 
-      <Container sx={{ mt: 2 }}>
+      <Container sx={{ px: 2 }}>
         <Grid container spacing={2} mb={2}>
           <Grid item xs={6}>
             <Card>
@@ -309,7 +362,21 @@ export default function DriverLog() {
           </>
         )}
       </Container>
-      <DriverFooter />
+      {/* Bottom Navigation */}
+      <Paper
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000
+        }}
+        elevation={3}
+      >
+        <BottomNavigation showLabels sx={{ backgroundColor: '#f5f5f5' }}>
+          <DriverFooter />
+        </BottomNavigation>
+      </Paper>
     </Box>
   );
 }

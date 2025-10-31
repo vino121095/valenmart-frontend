@@ -162,7 +162,7 @@ const ProfileEdit = () => {
   };
 
   return (
-    <Box sx={{ pb: 10, bgcolor: '#f8f8fb', minHeight: '100vh' }}>
+    <Box sx={{pt: 10, pb: 10, bgcolor: '#f8f8fb', minHeight: '100vh' }}>
       <Header title="Edit Profile" />
       <Container sx={{ mt: 3 }}>
         <Paper sx={{ p: 4, borderRadius: 3 }}>

@@ -25,12 +25,11 @@ import {
   Visibility,
   VisibilityOff,
   Login,
-  LocalGroceryStore,
   Person,
   Store,
   LocalShipping
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
+import logo from '../assets/velaanLogo.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App'; // Import the useAuth hook
 import baseurl from '../baseurl/ApiService';
@@ -237,23 +236,11 @@ const LoginPage = () => {
             <Box
               sx={{
                 display: 'flex',
-                alignItems: 'center',
+                justifyContent: 'center',
                 mb: 3
               }}
             >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: 0 }}
-              >
-                <LocalGroceryStore
-                  color="success"
-                  fontSize="large"
-                  sx={{ mr: 1 }}
-                />
-              </motion.div>
-              <Typography component="h1" variant="h4" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                Velaan Mart
-              </Typography>
+              <img src={logo} alt="Velaan Mart Logo" style={{ height: '150px' }} />
             </Box>
           </Grow>
 
@@ -374,7 +361,7 @@ const LoginPage = () => {
               <Typography variant="body2" color="text.secondary">
                 {activeTab === 0 && 'Login as a customer to browse and order products'}
                 {activeTab === 1 && 'Login as a vendor to manage your store and orders'}
-                {activeTab === 2 && 'Login as a driver to manage deliveries (Coming Soon)'}
+                {activeTab === 2 && 'Login as a driver to manage deliveries and routes'}
               </Typography>
             </Box>
           </Box>

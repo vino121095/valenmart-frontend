@@ -239,7 +239,7 @@ const OrderStatus = () => {
                                     top: 24,
                                     bottom: 0,
                                     width: '2px',
-                                    backgroundColor: step.completed ? '#00B76F' : '#E0E0E0',
+                                    backgroundColor: step.completed ? '#059212' : '#E0E0E0',
                                 }}
                             />
                         )}
@@ -254,7 +254,7 @@ const OrderStatus = () => {
                             }}
                         >
                             {step.completed ? (
-                                <CheckCircleIcon sx={{ fontSize: 20, color: '#00B76F' }} />
+                                <CheckCircleIcon sx={{ fontSize: 20, color: '#059212' }} />
                             ) : (
                                 <FiberManualRecordIcon sx={{ fontSize: 14, color: '#BDBDBD' }} />
                             )}

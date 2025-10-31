@@ -12,9 +12,10 @@ import {
   Snackbar,
   Alert,
   Badge,
-  MenuItem
+  MenuItem,
+  BottomNavigation
 } from '@mui/material';
-import { PhotoCamera } from '@mui/icons-material';
+import { PhotoCamera, ArrowBack, Notifications } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import baseurl from '../baseurl/ApiService';
 import Header from '../Header';
@@ -52,6 +53,7 @@ const DriverProfileEdit = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   // Get driver ID from localStorage
   useEffect(() => {
@@ -114,6 +116,25 @@ const DriverProfileEdit = () => {
 
   useEffect(() => {
     if (driverId) fetchProfile();
+    const fetchNotifications = async () => {
+      try {
+        const authToken = localStorage.getItem('token');
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const driverId = userData.id || userData.did || localStorage.getItem('driver_id');
+        if (!driverId) return;
+        const response = await fetch(`${baseurl}/api/driver-notification/all/${driverId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data && data.notifications) {
+          const unreadCount = data.notifications.filter(n => !n.is_read).length;
+          setNotificationCount(unreadCount);
+        }
+      } catch (e) {}
+    };
+    fetchNotifications();
     // eslint-disable-next-line
   }, [driverId]);
 
@@ -195,11 +216,56 @@ const DriverProfileEdit = () => {
   };
 
   return (
-    <Box sx={{ pb: 10, bgcolor: '#f8f8fb', minHeight: '100vh' }}>
-      <Header label="Edit Driver Profile" showBackArrow={true} showCart={false} showFilter={false} onBack={() => navigate(-1)} disableInstituteName={true} />
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 10, pt: 14 }}>
+      {/* Header */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(90deg, #004D26, #00A84F)',
+          color: '#fff',
+          p: 2.5,
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
+        }}
+      >
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box display="flex" alignItems="center" gap={2}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }}
+            >
+              <ArrowBack fontSize="small" />
+            </IconButton>
+            <Typography variant="h6" fontWeight="bold">
+              Edit Driver Profile
+            </Typography>
+          </Box>
+          <IconButton 
+            onClick={() => navigate('/driver-notifications')}
+            sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              color: 'white',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+            }}
+          >
+            <Badge badgeContent={notificationCount} color="error">
+              <Notifications sx={{ fontSize: 26 }} />
+            </Badge>
+          </IconButton>
+        </Box>
+      </Box>
 
       {/* Summary Card */}
-      <Paper sx={{ p: 3, m: { xs: 1, sm: 2 }, display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Paper sx={{ p: 3, mx: 2, mb: 2, display: 'flex', alignItems: 'center', gap: 2, borderRadius: 3, border: '1px solid #e2e8f0' }} elevation={0}>
         <Avatar sx={{ width: 64, height: 64 }} src={profileData.profileImageUrl || ''}>
           {profileData.first_name ? profileData.first_name.charAt(0).toUpperCase() : 'D'}
         </Avatar>
@@ -209,8 +275,8 @@ const DriverProfileEdit = () => {
         </Box>
       </Paper>
 
-      <Container sx={{ mt: 3 }}>
-        <Paper sx={{ p: 4, borderRadius: 3 }}>
+      <Container sx={{ px: 2 }}>
+        <Paper sx={{ p: 4, borderRadius: 3, border: '1px solid #e2e8f0' }} elevation={0}>
           <Typography variant="h5" gutterBottom>Edit Profile</Typography>
 
           {/* Profile Picture Upload */}
@@ -305,7 +371,21 @@ const DriverProfileEdit = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-      <DriverFooter />
+      {/* Bottom Navigation */}
+      <Paper
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000
+        }}
+        elevation={3}
+      >
+        <BottomNavigation showLabels sx={{ backgroundColor: '#f5f5f5' }}>
+          <DriverFooter />
+        </BottomNavigation>
+      </Paper>
     </Box>
   );
 };

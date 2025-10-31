@@ -299,9 +299,9 @@ const ShoppingCart = () => {
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+      <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc', pt: 10 }}>
         <Header showBackArrow={true} label="Shopping Cart" />
-        <Container sx={{ mt: 3, mb: 10, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <Container sx={{ mb: 10, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
           <Box sx={{ textAlign: 'center' }}>
             <CircularProgress sx={{ color: '#10b981', mb: 2 }} size={40} />
             <Typography variant="body2" color="text.secondary">Loading your cart...</Typography>
@@ -339,9 +339,9 @@ const ShoppingCart = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+    <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc', pt: 10 }}>
       <Header showBackArrow={true} label="Shopping Cart" />
-      <Container sx={{ mt: 2, mb: 20, maxWidth: '480px !important' }}>
+      <Container sx={{ mb: 20, maxWidth: '480px !important' }}>
         
         {/* Cart Items Section */}
         <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #e2e8f0', mb: 3, overflow: 'hidden' }}>
@@ -372,13 +372,14 @@ const ShoppingCart = () => {
                 variant="contained" 
                 onClick={() => navigate('/products')}
                 sx={{
-                  backgroundColor: '#10b981',
+                  background: 'linear-gradient(90deg, #004D26, #00A84F)',
+                  color: 'white',
                   borderRadius: 2,
                   px: 4,
                   py: 1.5,
                   textTransform: 'none',
                   fontWeight: 600,
-                  '&:hover': { backgroundColor: '#059669' }
+                  '&:hover': { background: 'linear-gradient(90deg, #003D1F, #008A40)' }
                 }}
               >
                 Continue Shopping
@@ -478,11 +479,11 @@ const ShoppingCart = () => {
                             onClick={() => handleIncrement(item.id, item.cartId)} 
                             disabled={updating}
                             sx={{
-                              backgroundColor: '#10b981',
+                              background: 'linear-gradient(90deg, #004D26, #00A84F)',
                               color: 'white',
                               width: 36,
                               height: 36,
-                              '&:hover': { backgroundColor: '#059669' },
+                              '&:hover': { background: 'linear-gradient(90deg, #003D1F, #008A40)' },
                               '&:disabled': { opacity: 0.5 }
                             }}
                           >
@@ -565,15 +566,16 @@ const ShoppingCart = () => {
                 onClick={handleCheckout}
                 disabled={updating}
                 sx={{
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  background: 'linear-gradient(90deg, #004D26, #00A84F)',
+                  color: 'white',
                   borderRadius: 3,
                   py: 2,
                   fontSize: 16,
                   fontWeight: 600,
                   textTransform: 'none',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  boxShadow: '0 4px 12px rgba(0, 77, 38, 0.3)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                    background: 'linear-gradient(90deg, #003D1F, #008A40)',
                     transform: 'translateY(-1px)',
                     boxShadow: '0 6px 20px rgba(16, 185, 129, 0.4)',
                   },

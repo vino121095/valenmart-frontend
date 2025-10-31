@@ -14,6 +14,12 @@ import {
     Button,
     Snackbar,
     Alert,
+    MenuItem,
+    Select,
+    FormControl,
+    List,
+    ListItem,
+    ListItemText,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -32,6 +38,8 @@ const Products = () => {
     const [products, setProducts] = useState([]);
     const [quantities, setQuantities] = useState({});
     const [searchQuery, setSearchQuery] = useState("");
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [sortBy, setSortBy] = useState("");
     const [loading, setLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -195,38 +203,99 @@ const Products = () => {
         return matchesSearch && matchesCategory;
     });
 
+    const searchSuggestions = searchQuery.length > 0
+        ? products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
+        : [];
+
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
+        if (sortBy === "priceLowToHigh") return a.price - b.price;
+        if (sortBy === "priceHighToLow") return b.price - a.price;
+        return 0;
+    });
+
     const handleCloseSnackbar = () => {
         setSnackbar({ ...snackbar, open: false });
     };
 
     return (
-        <Box sx={{ pb: 10 }}>
+        <Box sx={{ pt: 10, pb: 10 }}>
             <Header />
 
             {/* Search */}
             <Box sx={{ px: 2 }}>
-                <Paper
-                    component="form"
-                    sx={{
-                        mt: 2,
-                        mb: 3,
-                        display: "flex",
-                        alignItems: "center",
-                        borderRadius: 3,
-                        px: 2,
-                        py: 0.5,
-                        backgroundColor: "#f5f5f5",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                    }}
-                >
-                    <SearchIcon sx={{ color: "#666", mr: 1 }} />
-                    <InputBase
-                        sx={{ ml: 1, flex: 1, fontSize: "0.9rem" }}
-                        placeholder="Search Vegetables..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </Paper>
+                <Box sx={{ position: "relative" }}>
+                    <Paper
+                        component="form"
+                        sx={{
+                            mt: 2,
+                            mb: 3,
+                            display: "flex",
+                            alignItems: "center",
+                            borderRadius: 3,
+                            px: 2,
+                            py: 0.5,
+                            backgroundColor: "#f5f5f5",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                        }}
+                    >
+                        <SearchIcon sx={{ color: "#666", mr: 1 }} />
+                        <InputBase
+                            sx={{ ml: 1, flex: 1, fontSize: "0.9rem" }}
+                            placeholder="Search Vegetables..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => setShowSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        />
+                    </Paper>
+                    {showSuggestions && searchSuggestions.length > 0 && (
+                        <Paper
+                            sx={{
+                                position: "absolute",
+                                top: "100%",
+                                left: 0,
+                                right: 0,
+                                zIndex: 10,
+                                maxHeight: 200,
+                                overflow: "auto",
+                                boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
+                            }}
+                        >
+                            <List sx={{ py: 0 }}>
+                                {searchSuggestions.map((product) => (
+                                    <ListItem
+                                        key={product.id}
+                                        button
+                                        onClick={() => {
+                                            setSearchQuery(product.name);
+                                            setShowSuggestions(false);
+                                        }}
+                                        sx={{ py: 1, "&:hover": { backgroundColor: "#f5f5f5" } }}
+                                    >
+                                        <ListItemText primary={product.name} />
+                                    </ListItem>
+                                ))}
+                            </List>
+                        </Paper>
+                    )}
+                </Box>
+
+                {/* Filter and Sort */}
+                <Box sx={{ mb: 3, display: "flex", gap: 2, alignItems: "center" }}>
+                    <FilterListIcon sx={{ color: "#666" }} />
+                    <FormControl size="small" sx={{ minWidth: 200 }}>
+                        <Select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            displayEmpty
+                            sx={{ borderRadius: 2, backgroundColor: "#f5f5f5" }}
+                        >
+                            <MenuItem value="">Default</MenuItem>
+                            <MenuItem value="priceLowToHigh">Price: Low to High</MenuItem>
+                            <MenuItem value="priceHighToLow">Price: High to Low</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
 
                 {/* Categories */}
                 <Box sx={{ mb: 3 }}>
@@ -255,7 +324,7 @@ const Products = () => {
                                 borderRadius: "4px",
                             },
                             "&::-webkit-scrollbar-thumb": {
-                                background: "#00B76F",
+                                background: "linear-gradient(90deg, #004D26, #00A84F)",
                                 borderRadius: "4px",
                             },
                         }}
@@ -271,7 +340,7 @@ const Products = () => {
                                     borderRadius: 2,
                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                                     cursor: 'pointer',
-                                    border: selectedCategory === cat.label ? '2px solid #00B76F' : 'none',
+                                    border: selectedCategory === cat.label ? '2px solid #059212' : 'none',
                                     transition: 'transform 0.2s',
                                     '&:hover': {
                                         transform: 'translateY(-2px)',
@@ -327,7 +396,7 @@ const Products = () => {
                         gap: { xs: 1, sm: 1.5, md: 2 },
                         px: { xs: 1.5, sm: 1.5, md: 2 }
                     }}>
-                        {filteredProducts.slice(0, 4).map((product, index) => (
+                        {sortedProducts.slice(0, 4).map((product, index) => (
                             <Box key={product.id || index} sx={{ 
                                 width: { xs: 'calc(50% - 4px)', sm: 'calc(25% - 6px)', md: 'calc(25% - 8px)' },
                                 minWidth: { xs: 'calc(50% - 4px)', sm: 'calc(25% - 6px)', md: 'calc(25% - 8px)' }
@@ -382,7 +451,7 @@ const Products = () => {
                                             <Typography
                                                 variant="h6"
                                                 sx={{
-                                                    color: "#00B76F",
+                                                    color: "#059212",
                                                     fontWeight: 600,
                                                     fontSize: "0.9rem",
                                                 }}
@@ -395,11 +464,11 @@ const Products = () => {
                                                     size="small"
                                                     onClick={() => handleDecrement(product.id)}
                                                     sx={{
-                                                        bgcolor: "#00B76F",
+                                                        background: "linear-gradient(90deg, #004D26, #00A84F)",
                                                         color: "#fff",
                                                         width: 24,
                                                         height: 24,
-                                                        "&:hover": { bgcolor: "#00985D" },
+                                                        "&:hover": { background: "linear-gradient(90deg, #003D1F, #008A40)" },
                                                     }}
                                                 >
                                                     <RemoveIcon sx={{ fontSize: "0.8rem" }} />
@@ -419,11 +488,11 @@ const Products = () => {
                                                     size="small"
                                                     onClick={() => handleIncrement(product.id)}
                                                     sx={{
-                                                        bgcolor: "#00B76F",
+                                                        background: "linear-gradient(90deg, #004D26, #00A84F)",
                                                         color: "#fff",
                                                         width: 24,
                                                         height: 24,
-                                                        "&:hover": { bgcolor: "#00985D" },
+                                                        "&:hover": { background: "linear-gradient(90deg, #003D1F, #008A40)" },
                                                     }}
                                                 >
                                                     <AddIcon sx={{ fontSize: "0.8rem" }} />
@@ -448,7 +517,7 @@ const Products = () => {
                                             variant="contained"
                                             disabled={loading}
                                             sx={{
-                                                backgroundColor: "#00B76F",
+                                                background: "linear-gradient(90deg, #004D26, #00A84F)",
                                                 fontSize: "0.7rem",
                                                 fontWeight: 600,
                                                 py: 1,
@@ -456,7 +525,7 @@ const Products = () => {
                                                 textTransform: "none",
                                                 color: "#fff",
                                                 whiteSpace: "nowrap",
-                                                "&:hover": { backgroundColor: "#00985D" },
+                                                "&:hover": { backgroundColor: "#047010" },
                                                 "&:disabled": { backgroundColor: "#cccccc" },
                                             }}
                                             onClick={() =>
@@ -479,17 +548,17 @@ const Products = () => {
                         fullWidth
                         variant="contained"
                         sx={{
-                            backgroundColor: "#00B76F",
+                            background: "linear-gradient(90deg, #004D26, #00A84F)",
                             borderRadius: 2,
                             py: 1.8,
                             fontWeight: 600,
                             fontSize: "1rem",
                             textTransform: "none",
                             color: "#fff",
-                            boxShadow: "0 4px 12px rgba(0, 183, 111, 0.3)",
+                            boxShadow: "0 4px 12px rgba(5, 146, 18, 0.3)",
                             "&:hover": {
-                                backgroundColor: "#00985D",
-                                boxShadow: "0 6px 16px rgba(0, 183, 111, 0.4)",
+                                backgroundColor: "#047010",
+                                boxShadow: "0 6px 16px rgba(5, 146, 18, 0.4)",
                             },
                         }}
                         onClick={() => navigate("/all-products")}

@@ -195,7 +195,7 @@ const Profile = () => {
   };
 
   return (
-    <Box sx={{ pb: 10, bgcolor: '#f8f8fb', minHeight: '100vh' }}>
+    <Box sx={{ pt: 10, pb: 10, bgcolor: '#f8f8fb', minHeight: '100vh' }}>
       <Header/>
       {/* Profile Info */}
       <Box

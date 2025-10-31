@@ -136,7 +136,7 @@ function Dashboard() {
   }, [user]);
 
   return (
-    <Box sx={{ backgroundColor: "#F6F8FA", minHeight: "100vh", pb: 7 }}>
+    <Box sx={{ backgroundColor: "#F6F8FA", minHeight: "100vh", pt: 10, pb: 7 }}>
       {/* ✅ Header: Only Cart shown */}
       <Header
   // showCart={true}
@@ -304,7 +304,7 @@ function Dashboard() {
               <Button
                 onClick={() => navigate("/OrderCard")}
                 variant="contained"
-                sx={{ backgroundColor: "#00B074", color: "white" }}
+                sx={{ background: "linear-gradient(90deg, #004D26, #00A84F)", color: "white" }}
               >
                 View All Orders
               </Button>

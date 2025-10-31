@@ -281,31 +281,35 @@ const OrderCard = ({ order, onPriceUpdated, editable, productMap, showActionButt
   return (
     <>
       <Paper
-        elevation={1}
+        elevation={0}
         sx={{
-          borderRadius: 2,
-          p: 2,
+          borderRadius: 3,
+          p: 2.5,
           mb: 2,
-          border: '2px solid #00A86B',
+          border: '1px solid #e2e8f0',
+          transition: 'all 0.2s',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+            transform: 'translateY(-2px)'
+          }
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography fontWeight="bold" fontSize="16px">
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography fontWeight="bold" fontSize="17px" sx={{ color: '#1e293b' }}>
             Order #{order.procurement_id}
           </Typography>
-          <Typography color="text.secondary" fontSize="14px">
-            {order.order_date}
+          <Typography color="text.secondary" fontSize="13px">
+            {new Date(order.order_date).toLocaleDateString()}
           </Typography>
         </Box>
 
-        <Box mt={1.5} mb={2}>
+        <Box mb={2}>
           {productList.map((prod, idx) => (
-            <Box key={idx} sx={{ mb: 1, p: 1, bgcolor: '#f9f9f9', borderRadius: 1 }}>
+            <Box key={idx} sx={{ mb: 1.5, p: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box flex={1}>
-                  <Typography fontWeight="bold" fontSize="15px">
+                  <Typography fontWeight="600" fontSize="15px" sx={{ color: '#1e293b', mb: 0.5 }}>
                     {prod.product_name || (productMap && productMap[prod.product_id]) || prod.product_id || ''}
-                    {prod.quantity ? ` (${prod.quantity}kg @ ₹${prod.unit_price}/kg)` : ''}
                   </Typography>
                   <Typography fontSize="13px" color="text.secondary">
                     Quantity: {prod.quantity || 1}kg
@@ -341,7 +345,7 @@ const OrderCard = ({ order, onPriceUpdated, editable, productMap, showActionButt
                     </>
                   ) : (
                     <>
-                      <Typography fontSize="14px" fontWeight="bold">
+                      <Typography fontSize="14px" fontWeight="600" sx={{ color: '#16a34a' }}>
                         ₹{prod.unit_price || prod.price || 0}/kg
                       </Typography>
                       {editable && (
@@ -358,28 +362,28 @@ const OrderCard = ({ order, onPriceUpdated, editable, productMap, showActionButt
                 </Box>
               </Box>
               
-              <Typography fontSize="12px" color="text.secondary">
+              <Typography fontSize="12px" fontWeight="600" sx={{ color: '#64748b', mt: 0.5 }}>
                 Line Total: ₹{((prod.quantity || 1) * (prod.unit_price || prod.price || 0)).toFixed(2)}
               </Typography>
             </Box>
           ))}
         </Box>
 
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          {/* <Box>
-            {editable && productList.length > 1 && (
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={handleMultiEdit}
-                sx={{ mr: 1 }}
-              >
-                Edit All Prices
-              </Button>
-            )}
-          </Box> */}
-          <Typography fontWeight="bold" fontSize="16px">
-            Total: ₹{order.price}
+        <Box 
+          sx={{ 
+            mt: 2, 
+            pt: 2, 
+            borderTop: '2px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <Typography fontWeight="bold" fontSize="17px" sx={{ color: '#1e293b' }}>
+            Total Amount
+          </Typography>
+          <Typography fontWeight="bold" fontSize="18px" sx={{ color: '#16a34a' }}>
+            ₹{order.price}
           </Typography>
         </Box>
 
@@ -388,7 +392,17 @@ const OrderCard = ({ order, onPriceUpdated, editable, productMap, showActionButt
             <>
               <Button
                 variant="contained"
-                sx={{ backgroundColor: '#00A86B', color: '#fff', flex: 1, fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', py: 1 }}
+                sx={{ 
+                  background: 'linear-gradient(90deg, #004D26, #00A84F)',
+                  color: '#fff', 
+                  flex: 1, 
+                  fontSize: '13px', 
+                  fontWeight: 600, 
+                  textTransform: 'none', 
+                  py: 1.5,
+                  borderRadius: 2,
+                  '&:hover': { background: 'linear-gradient(90deg, #003D1F, #008A40)' }
+                }}
                 onClick={async () => {
                   try {
                     const response = await fetch(`${baseurl}/api/procurement/update/${order.procurement_id}`, {
@@ -411,7 +425,17 @@ const OrderCard = ({ order, onPriceUpdated, editable, productMap, showActionButt
               </Button>
               <Button
                 variant="contained"
-                sx={{ backgroundColor: '#FF0000', color: '#fff', flex: 1, fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', py: 1 }}
+                sx={{ 
+                  background: '#dc2626',
+                  color: '#fff', 
+                  flex: 1, 
+                  fontSize: '13px', 
+                  fontWeight: 600, 
+                  textTransform: 'none', 
+                  py: 1.5,
+                  borderRadius: 2,
+                  '&:hover': { background: '#b91c1c' }
+                }}
                 onClick={async () => {
                   try {
                     const response = await fetch(`${baseurl}/api/procurement/update/${order.procurement_id}`, {
@@ -434,9 +458,20 @@ const OrderCard = ({ order, onPriceUpdated, editable, productMap, showActionButt
               </Button>
             </>
           ) : (
-            <Typography fontWeight="bold" color="text.secondary" sx={{ flex: 1, textAlign: 'center', py: 1, fontSize: '14px', background: '#f5f5f5', borderRadius: 1 }}>
-              Status: {order.status}
-            </Typography>
+            <Box 
+              sx={{ 
+                flex: 1, 
+                textAlign: 'center', 
+                py: 1.5, 
+                fontSize: '14px', 
+                background: order.status === 'Confirmed' ? '#dcfce7' : order.status === 'Rejected' ? '#fee2e2' : '#fef3c7',
+                color: order.status === 'Confirmed' ? '#16a34a' : order.status === 'Rejected' ? '#dc2626' : '#92400e',
+                borderRadius: 2,
+                fontWeight: 600
+              }}
+            >
+              {order.status}
+            </Box>
           )}
         </Box>
       </Paper>
@@ -676,71 +711,79 @@ const ProcurementOrder = () => {
   }, [tabIndex, searchTerm]);
 
   return (
-    <Box sx={{ bgcolor: '#F4F4F6', minHeight: '100vh', pb: 10 }}>
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 10, pt: 14 }}>
       {/* Header */}
       <Box
         sx={{
-          bgcolor: '#00A86B',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(90deg, #004D26, #00A84F)',
           color: '#fff',
-          p: 2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          p: 2.5,
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
         }}
       >
-        <Box display="flex" alignItems="center" gap={2}>
-          <IconButton
-            onClick={handleBack}
-            sx={{
-              backgroundColor: '#FFFFFF4D',
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box display="flex" alignItems="center" gap={2}>
+            <IconButton
+              onClick={handleBack}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }}
+            >
+              <ArrowBackIcon fontSize="small" />
+            </IconButton>
+            <Typography variant="h6" fontWeight="bold">
+              Procurement Orders
+            </Typography>
+          </Box>
+          <IconButton 
+            onClick={handleNotificationClick}
+            sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
               color: 'white',
-              borderRadius: '50%',
-              p: 1,
-              mr: 1,
-              cursor: 'pointer',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
             }}
           >
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" fontWeight="bold">
-            Procurement Orders
-          </Typography>
-        </Box>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Badge badgeContent={notificationCount} color="error">
-            <IconButton 
-              onClick={handleNotificationClick}
-              sx={{ color: 'white' }}
-            >
+            <Badge badgeContent={notificationCount} color="error">
               <NotificationsIcon />
-            </IconButton>
-          </Badge>
+            </Badge>
+          </IconButton>
         </Box>
       </Box>
 
       {/* Search Bar */}
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ px: 2 }}>
         <Box
           sx={{
             bgcolor: 'white',
             display: 'flex',
             alignItems: 'center',
-            borderRadius: 5,
+            borderRadius: 3,
             px: 2,
-            py: 1,
+            py: 1.5,
             mb: 2,
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
           }}
         >
-          <SearchIcon sx={{ color: '#999' }} />
+          <SearchIcon sx={{ color: '#94a3b8' }} />
           <TextField
             fullWidth
-            placeholder="Search by Order ID, Product Name, Date, or Vendor..."
+            placeholder="Search orders..."
             variant="standard"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             InputProps={{
               disableUnderline: true,
-              sx: { pl: 1 },
+              sx: { pl: 1.5, fontSize: 15 },
             }}
           />
         </Box>
@@ -750,10 +793,22 @@ const ProcurementOrder = () => {
           value={tabIndex}
           onChange={(e, newValue) => setTabIndex(newValue)}
           variant="fullWidth"
-          sx={{ mb: 2 }}
+          sx={{ 
+            mb: 3,
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: 14
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: '#16a34a',
+              height: 3,
+              borderRadius: '3px 3px 0 0'
+            }
+          }}
         >
-          <Tab label="Request from Admin" />
-          <Tab label="Your Request" />
+          <Tab label="Admin Requests" />
+          <Tab label="Your Requests" />
         </Tabs>
 
         {/* Orders List by Tab */}
@@ -763,7 +818,7 @@ const ProcurementOrder = () => {
           
           if (currentOrders.length > 0) {
             return (
-              <>
+              <Box sx={{ px: 2 }}>
                 {currentOrders.map((order) => (
                   <OrderCard 
                     key={order.procurement_id} 
@@ -777,23 +832,37 @@ const ProcurementOrder = () => {
                 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 2 }}>
                     <Pagination 
                       count={totalPages} 
                       page={currentPage} 
                       onChange={handlePageChange}
-                      color="primary"
+                      sx={{
+                        '& .MuiPaginationItem-root': {
+                          fontWeight: 600
+                        },
+                        '& .Mui-selected': {
+                          backgroundColor: '#16a34a !important',
+                          color: 'white'
+                        }
+                      }}
                       size="large"
                     />
                   </Box>
                 )}
-              </>
+              </Box>
             );
           } else {
             return (
-              <Typography color="text.secondary" align="center" sx={{ mt: 2 }}>
-                {tabIndex === 0 ? 'No admin orders found.' : 'No orders found.'}
-              </Typography>
+              <Box sx={{ textAlign: 'center', py: 8, px: 2 }}>
+                <Typography sx={{ fontSize: 48, mb: 2 }}>📦</Typography>
+                <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5, color: '#1e293b' }}>
+                  No Orders Found
+                </Typography>
+                <Typography color="text.secondary">
+                  {tabIndex === 0 ? 'No admin requests at the moment' : 'You haven\'t made any requests yet'}
+                </Typography>
+              </Box>
             );
           }
         })()}

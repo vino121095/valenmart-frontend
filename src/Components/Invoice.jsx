@@ -12,7 +12,8 @@ import {
   Stack,
   Badge,
   CircularProgress,
-  Alert
+  Alert,
+  TextField
 } from '@mui/material';
 import { ArrowBack, FilterList, ShoppingCart, Search, Home, Inventory, Assignment, Receipt, Person, CurrencyRupee } from '@mui/icons-material';
 import Footer from '../Footer';
@@ -29,6 +30,8 @@ const Invoice = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -140,11 +143,24 @@ const Invoice = () => {
     return sum + parseFloat(calculatedTotal);
   }, 0);
 
-  // Filter orders based on search query
-  const filteredOrders = orders.filter(order =>
-    order.order_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.status?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter orders based on search query and date range
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = order.order_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.status?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (!matchesSearch) return false;
+    
+    if (startDate || endDate) {
+      const orderDate = new Date(order.order_date);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+      
+      if (start && orderDate < start) return false;
+      if (end && orderDate > end) return false;
+    }
+    
+    return true;
+  });
 
   if (loading) {
     return (
@@ -165,7 +181,7 @@ const Invoice = () => {
   }
 
   return (
-    <Box sx={{ bgcolor: '#f6f8fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ pt: 10, bgcolor: '#f6f8fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
 
       {/* Search */}
@@ -180,6 +196,26 @@ const Invoice = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </Box>
+      </Box>
+
+      {/* Date Filter */}
+      <Box sx={{ px: 2, mt: 2, display: 'flex', gap: 2 }}>
+        <TextField
+          label="Start Date"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ flex: 1, bgcolor: 'white', borderRadius: 2 }}
+        />
+        <TextField
+          label="End Date"
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ flex: 1, bgcolor: 'white', borderRadius: 2 }}
+        />
       </Box>
 
       {/* Summary Cards */}

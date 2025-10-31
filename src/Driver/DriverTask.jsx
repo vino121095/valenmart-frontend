@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Container, Typography, TextField, Button, Grid, Card, CardContent, IconButton, Tab, Tabs, Badge, CircularProgress, Alert, Modal, Divider, Chip } from '@mui/material';
-import { ArrowBack, FilterList, Phone, LocationOn, Person, ShoppingCart, Close } from '@mui/icons-material';
+import { Box, Container, Typography, TextField, Button, Grid, Card, CardContent, IconButton, Tab, Tabs, Badge, CircularProgress, Alert, Modal, Divider, Chip, Paper, BottomNavigation } from '@mui/material';
+import { ArrowBack, FilterList, Phone, LocationOn, Person, ShoppingCart, Close, Schedule, LocalShipping } from '@mui/icons-material';
 import { Notifications, Dashboard, Assignment, Person as PersonIcon, ListAlt } from '@mui/icons-material';
 import DriverFooter from '../driverfooter';
 import baseurl from '../baseurl/ApiService';
@@ -24,6 +24,7 @@ export default function DriverTask() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [notificationCount, setNotificationCount] = useState(0);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -41,6 +42,9 @@ export default function DriverTask() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [itemType, setItemType] = useState(''); // 'pickup' or 'delivery'
+  
+  // Products state
+  const [products, setProducts] = useState({});
 
   // Fetch vendor details by ID
   const fetchVendorDetails = async (vendorId) => {
@@ -94,6 +98,41 @@ export default function DriverTask() {
     }
   };
 
+  // Fetch products and create a mapping
+  const fetchProducts = async () => {
+    try {
+      const authToken = localStorage.getItem('token');
+      const response = await fetch(`${baseurl}/api/product/all`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch products');
+        return {};
+      }
+      
+      const data = await response.json();
+      // console.log('Products data:', data);
+      
+      // Create a mapping of product_id to product_name
+      const productMap = {};
+      if (data.data && Array.isArray(data.data)) {
+        data.data.forEach(product => {
+          productMap[product.pid || product.id] = product.product_name;
+        });
+      }
+      
+      return productMap;
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return {};
+    }
+  };
+
   // Fetch and classify orders
   const fetchOrders = async () => {
     setLoading(true);
@@ -105,6 +144,10 @@ export default function DriverTask() {
         (userData ? JSON.parse(userData).id : null);
 
       if (!driverId) throw new Error('Driver ID not found. Please login again.');
+
+      // Fetch products mapping
+      const productMap = await fetchProducts();
+      setProducts(productMap);
 
       // Fetch regular orders
       const response = await fetch(`${baseurl}/api/order/all`, {
@@ -204,39 +247,57 @@ export default function DriverTask() {
             total_amount: order.price || order.total_amount || 0,
             // Ensure items are properly formatted
             raw_items: order.items,
+            // Add product map for easy lookup
+            productMap: productMap
           };
 
-          // console.log('Transformed procurement pickup:', transformedPickup);
+          console.log('Transformed procurement pickup:', transformedPickup);
+          console.log('Procurement items:', order.items);
           return transformedPickup;
         })
       );
 
-      // Transform regular pickups
-      const transformedPickups = pickupOrders.map(order => ({
-        procurement: false,
-        oid: order.oid || order.order_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
-        type: 'Pickup',
-        location: order.CustomerProfile?.institution_name || order.location || 'Unknown Location',
-        address: `${order.vendor.address || 'Address not available'}, ${order.city || ''}`,
-        time: order.time || order.delivery_time || 'Time not set',
-        status: order.status || 'pending',
-        // Add detailed information
-        customer_name: order.CustomerProfile?.contact_person_name || order.customer_name || 'Unknown Customer',
-        customer_address: order.vendor.address || 'Address not available',
-        customer_city: order.vendor.city || '',
-        customer_phone: order.CustomerProfile?.contact_person_phone || order.contact_phone || 'Not provided',
-        customer_email: order.CustomerProfile?.contact_person_email || order.email || 'Not provided',
-        items: order.items || [],
-        notes: order.notes || '',
-        order_date: order.order_date || '',
-        delivery_time: order.delivery_time || '',
-        total_amount: order.total_amount || 0,
-        // Ensure items are properly formatted
-        raw_items: order.items,
-      }));
-
       // Fetch all order items once
       const orderItemsData = await fetchOrderItems();
+
+      // Transform regular pickups with order items
+      const transformedPickups = pickupOrders.map(order => {
+        // Find order items for this specific order
+        let orderItems = [];
+        if (orderItemsData && orderItemsData.data && Array.isArray(orderItemsData.data)) {
+          orderItems = orderItemsData.data.filter(item => 
+            String(item.order_id) === String(order.oid)
+          );
+        }
+
+        return {
+          procurement: false,
+          oid: order.oid || order.order_id || `#${Math.floor(Math.random() * 9000) + 1000}`,
+          type: 'Pickup',
+          location: order.CustomerProfile?.institution_name || order.location || 'Unknown Location',
+          address: `${order.vendor.address || 'Address not available'}, ${order.city || ''}`,
+          time: order.time || order.delivery_time || 'Time not set',
+          status: order.status || 'pending',
+          // Add detailed information
+          customer_name: order.CustomerProfile?.contact_person_name || order.customer_name || 'Unknown Customer',
+          customer_address: order.vendor.address || 'Address not available',
+          customer_city: order.vendor.city || '',
+          customer_phone: order.CustomerProfile?.contact_person_phone || order.contact_phone || 'Not provided',
+          customer_email: order.CustomerProfile?.contact_person_email || order.email || 'Not provided',
+          items: order.items || [],
+          notes: order.notes || '',
+          order_date: order.order_date || '',
+          delivery_time: order.delivery_time || '',
+          total_amount: order.total_amount || 0,
+          // Ensure items are properly formatted
+          raw_items: order.items,
+          // Add order items information
+          order_items: orderItems,
+          order_id: order.oid || order.order_id,
+          // Add product map for easy lookup
+          productMap: productMap
+        };
+      });
       // console.log('All order items fetched:', orderItemsData);
 
       // Transform regular deliveries with order items
@@ -245,9 +306,9 @@ export default function DriverTask() {
         let orderItems = [];
         if (orderItemsData && orderItemsData.data && Array.isArray(orderItemsData.data)) {
           orderItems = orderItemsData.data.filter(item => 
-            String(item.order_id) === String(order.oid || order.order_id)
+            String(item.order_id) === String(order.oid)
           );
-          // console.log(`Order items for order ${order.oid || order.order_id}:`, orderItems);
+          // console.log(`Order items for order ${order.oid}:`, orderItems);
         }
 
         return {
@@ -275,6 +336,8 @@ export default function DriverTask() {
           // Add order items information
           order_items: orderItems,
           order_id: order.oid || order.order_id,
+          // Add product map for easy lookup
+          productMap: productMap
         };
       });
 
@@ -292,21 +355,37 @@ export default function DriverTask() {
 
   useEffect(() => {
     fetchOrders();
+    const fetchNotifications = async () => {
+      try {
+        const authToken = localStorage.getItem('token');
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const driverId = userData.id || userData.did || localStorage.getItem('driver_id');
+        if (!driverId) return;
+        const response = await fetch(`${baseurl}/api/driver-notification/all/${driverId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data && data.notifications) {
+          const unreadCount = data.notifications.filter(n => !n.is_read).length;
+          setNotificationCount(unreadCount);
+        }
+      } catch (e) {}
+    };
+    fetchNotifications();
     // eslint-disable-next-line
   }, []);
 
   // Detail modal handlers
   const handleOpenDetailModal = (item, type) => {
-    // console.log('Opening detail modal for:', item);
-    // console.log('Item type:', type);
-    // console.log('Is procurement:', item.procurement);
-    // console.log('Vendor details:', {
-    //   vendor_name: item.vendor_name,
-    //   vendor_phone: item.vendor_phone,
-    //   vendor_address: item.vendor_address,
-    //   vendor_city: item.vendor_city,
-    //   vendor_id: item.vendor_id
-    // });
+    console.log('Opening detail modal for:', item);
+    console.log('Item type:', type);
+    console.log('Is procurement:', item.procurement);
+    console.log('Items:', item.items);
+    console.log('Raw items:', item.raw_items);
+    console.log('Order items:', item.order_items);
+    console.log('Product map:', item.productMap);
     setSelectedItem(item);
     setItemType(type);
     setDetailModalOpen(true);
@@ -322,22 +401,56 @@ export default function DriverTask() {
   const parseItems = (items) => {
     if (!items) return [];
     
-    // For deliveries, try to use order_items first if available
-    if (itemType === 'delivery' && selectedItem?.order_items && selectedItem.order_items.length > 0) {
-      // console.log('Using order_items for delivery:', selectedItem.order_items);
+    // For procurement pickups, use items directly
+    if (selectedItem?.procurement && selectedItem.items) {
+      console.log('Using procurement items:', selectedItem.items);
+      const itemsToParse = selectedItem.items;
+      
+      // If items is a string, try to parse it
+      if (typeof itemsToParse === 'string') {
+        try {
+          const parsed = JSON.parse(itemsToParse);
+          if (Array.isArray(parsed)) {
+            return parsed.map(item => ({
+              product_id: item.product_id,
+              product_name: selectedItem.productMap[item.product_id] || `Product ${item.product_id}`,
+              quantity: item.quantity || 1,
+              unit_price: item.unit_price || item.price || 0
+            }));
+          }
+        } catch (e) {
+          console.log('Failed to parse procurement items JSON');
+        }
+      }
+      
+      // If items is already an array
+      if (Array.isArray(itemsToParse)) {
+        return itemsToParse.map(item => ({
+          product_id: item.product_id,
+          product_name: selectedItem.productMap[item.product_id] || `Product ${item.product_id}`,
+          quantity: item.quantity || 1,
+          unit_price: item.unit_price || item.price || 0
+        }));
+      }
+    }
+    
+    // Try to use order_items first if available (for regular pickups and deliveries)
+    if (selectedItem?.order_items && selectedItem.order_items.length > 0) {
+      console.log('Using order_items:', selectedItem.order_items);
       
       return selectedItem.order_items.map(item => ({
-        product_name: item.product_name || item.name || getProductName(item.product_id) || 'Unknown Product',
+        product_id: item.product_id || item.Product?.pid || item.Product?.id,
+        product_name: item.Product?.product_name || item.Product?.name || item.name || selectedItem.productMap[item.product_id || item.Product?.pid || item.Product?.id] || `Product ${item.product_id}`,
         quantity: item.quantity || 1,
-        unit_price: item.unit_price || item.price || 0,
-        product_id: item.product_id
+        unit_price: item.unit_price || item.price || 0
       }));
     }
     
     // Try to use raw_items if available (for better data preservation)
     const itemsToParse = selectedItem?.raw_items || items;
     
-    // console.log('Parsing items:', itemsToParse);
+    console.log('Parsing items:', itemsToParse);
+    console.log('Selected item:', selectedItem);
     
     // If items is a string, try to parse it
     if (typeof itemsToParse === 'string') {
@@ -348,17 +461,17 @@ export default function DriverTask() {
         
         if (Array.isArray(parsed)) {
           return parsed.map(item => ({
-            product_name: item.product_name || item.name || getProductName(item.product_id) || 'Unknown Product',
+            product_id: item.product_id,
+            product_name: selectedItem.productMap[item.product_id] || `Product ${item.product_id}`,
             quantity: item.quantity || 1,
-            unit_price: item.unit_price || item.price || 0,
-            product_id: item.product_id
+            unit_price: item.unit_price || item.price || 0
           }));
         } else if (typeof parsed === 'object') {
           return [{
-            product_name: parsed.product_name || parsed.name || getProductName(parsed.product_id) || 'Unknown Product',
+            product_id: parsed.product_id,
+            product_name: selectedItem.productMap[parsed.product_id] || `Product ${parsed.product_id}`,
             quantity: parsed.quantity || 1,
-            unit_price: parsed.unit_price || parsed.price || 0,
-            product_id: parsed.product_id
+            unit_price: parsed.unit_price || parsed.price || 0
           }];
         }
       } catch (e) {
@@ -376,46 +489,25 @@ export default function DriverTask() {
     // If items is already an array
     if (Array.isArray(itemsToParse)) {
       return itemsToParse.map(item => ({
-        product_name: item.product_name || item.name || getProductName(item.product_id) || 'Unknown Product',
+        product_id: item.product_id,
+        product_name: selectedItem.productMap[item.product_id] || `Product ${item.product_id}`,
         quantity: item.quantity || 1,
-        unit_price: item.unit_price || item.price || 0,
-        product_id: item.product_id
+        unit_price: item.unit_price || item.price || 0
       }));
     }
     
     // If items is an object
     if (typeof itemsToParse === 'object' && itemsToParse !== null) {
       return [{
-        product_name: itemsToParse.product_name || itemsToParse.name || getProductName(itemsToParse.product_id) || 'Unknown Product',
+        product_id: itemsToParse.product_id,
+        product_name: selectedItem.productMap[itemsToParse.product_id] || `Product ${itemsToParse.product_id}`,
         quantity: itemsToParse.quantity || 1,
-        unit_price: itemsToParse.unit_price || itemsToParse.price || 0,
-        product_id: itemsToParse.product_id
+        unit_price: itemsToParse.unit_price || itemsToParse.price || 0
       }];
     }
     
     // console.log('No items found or unrecognized format');
     return [];
-  };
-
-  // Helper function to get product name from product ID
-  const getProductName = (productId) => {
-    if (!productId) return null;
-    
-    // You might want to fetch product names from an API or use a mapping
-    const productMap = {
-      1: 'Potatoes',
-      2: 'Tomatoes', 
-      3: 'Spinach',
-      4: 'Onions',
-      5: 'Carrots',
-      6: 'Beans',
-      7: 'Peas',
-      8: 'Cabbage',
-      9: 'Cauliflower',
-      10: 'Brinjal'
-      // Add more product mappings as needed
-    };
-    return productMap[productId] || `Product ${productId}`;
   };
 
   // Helper function to format address
@@ -611,179 +703,306 @@ export default function DriverTask() {
     }
   };
 
+  // Helper functions for button actions
+  const handlePickupButtonClick = (e, pickup) => {
+    e.stopPropagation();
+    const status = pickup.status ? pickup.status.toLowerCase().trim() : '';
+    
+    if ((status === 'pending' || pickup.status === 'Waiting for Approval') && pickup.procurement) {
+      handleStartPickup(pickup);
+    } else if (status === 'approved' && pickup.procurement) {
+      handleOpenPickupModal(pickup);
+    }
+  };
+
+  const handleDeliveryButtonClick = (e, delivery) => {
+    e.stopPropagation();
+    
+    if (delivery.status === 'Out for Delivery') {
+      handleOpenModal(delivery);
+    } else if (delivery.status !== 'Delivered' && delivery.status !== 'Completed') {
+      handleStartDelivery(delivery);
+    }
+  };
+
+  const getPickupButtonText = (pickup) => {
+    const status = pickup.status ? pickup.status.toLowerCase().trim() : '';
+    
+    if (status === 'pending' || pickup.status === 'Waiting for Approval') {
+      return '🚀 Start Pickup';
+    } else if (status === 'approved') {
+      return '✅ Mark as Picked';
+    } else {
+      return '✓ Picked';
+    }
+  };
+
+  const getDeliveryButtonText = (delivery) => {
+    if (delivery.status === 'Out for Delivery') {
+      return '🚚 Mark as Delivered';
+    } else if (delivery.status === 'Delivered' || delivery.status === 'Completed') {
+      return '✓ Delivered';
+    } else {
+      return '🚀 Start Delivery';
+    }
+  };
+
+  const getPickupButtonStyle = (pickup) => {
+    const status = pickup.status ? pickup.status.toLowerCase().trim() : '';
+    
+    if (status === 'picked') {
+      return {
+        background: 'linear-gradient(90deg, #ff9800, #f57c00)',
+        boxShadow: '0 4px 12px rgba(245, 124, 0, 0.3)',
+        '&:hover': { 
+          boxShadow: '0 6px 16px rgba(245, 124, 0, 0.4)', 
+          transform: 'translateY(-1px)' 
+        },
+        '&:disabled': { 
+          background: '#e0e0e0', 
+          color: '#9e9e9e' 
+        }
+      };
+    } else {
+      return {
+        background: 'linear-gradient(90deg, #00A84F, #004D26)',
+        boxShadow: '0 4px 12px rgba(0, 168, 79, 0.3)',
+        '&:hover': { 
+          boxShadow: '0 6px 16px rgba(0, 168, 79, 0.4)', 
+          transform: 'translateY(-1px)' 
+        },
+        '&:disabled': { 
+          background: '#e0e0e0', 
+          color: '#9e9e9e' 
+        }
+      };
+    }
+  };
+
+  const getDeliveryButtonStyle = (delivery) => {
+    if (delivery.status === 'Out for Delivery') {
+      return {
+        background: 'linear-gradient(90deg, #ff9800, #f57c00)',
+        boxShadow: '0 4px 12px rgba(245, 124, 0, 0.3)',
+        '&:hover': { 
+          boxShadow: '0 6px 16px rgba(245, 124, 0, 0.4)', 
+          transform: 'translateY(-1px)' 
+        },
+        '&:disabled': { 
+          background: '#e0e0e0', 
+          color: '#9e9e9e' 
+        }
+      };
+    } else if (delivery.status === 'Delivered' || delivery.status === 'Completed') {
+      return {
+        background: 'linear-gradient(90deg, #66BB6A, #43A047)',
+        boxShadow: '0 4px 12px rgba(102, 187, 106, 0.3)',
+        '&:hover': { 
+          boxShadow: '0 6px 16px rgba(102, 187, 106, 0.4)', 
+          transform: 'translateY(-1px)' 
+        },
+        '&:disabled': { 
+          background: '#e0e0e0', 
+          color: '#9e9e9e' 
+        }
+      };
+    } else {
+      return {
+        background: 'linear-gradient(90deg, #2196F3, #1565C0)',
+        boxShadow: '0 4px 12px rgba(33, 150, 243, 0.3)',
+        '&:hover': { 
+          boxShadow: '0 6px 16px rgba(33, 150, 243, 0.4)', 
+          transform: 'translateY(-1px)' 
+        },
+        '&:disabled': { 
+          background: '#e0e0e0', 
+          color: '#9e9e9e' 
+        }
+      };
+    }
+  };
+
   return (
-    <Box sx={{ bgcolor: '#f5f7fa', minHeight: '100vh', pb: 7 }}>
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 10, pt: 14 }}>
       {/* Detail View Modal */}
       <Modal open={detailModalOpen} onClose={handleCloseDetailModal}>
         <Box sx={{
           position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          bgcolor: 'background.paper', boxShadow: 24, p: 4, borderRadius: 2, minWidth: 400, maxWidth: 600, maxHeight: '80vh', overflow: 'auto'
+          bgcolor: 'background.paper', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', borderRadius: 4, minWidth: 400, maxWidth: 600, maxHeight: '85vh', overflow: 'hidden'
         }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6" fontWeight="bold">
-              {itemType === 'pickup' ? 'Pickup Details' : 'Delivery Details'}
-            </Typography>
-            <IconButton onClick={handleCloseDetailModal}>
+          <Box sx={{ background: itemType === 'pickup' ? 'linear-gradient(135deg, #00A84F, #004D26)' : 'linear-gradient(135deg, #2196F3, #1565C0)', color: 'white', p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h6" fontWeight="bold">
+                {itemType === 'pickup' ? '📦 Pickup Details' : '🚚 Delivery Details'}
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>Order #{selectedItem?.oid}</Typography>
+            </Box>
+            <IconButton onClick={handleCloseDetailModal} sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}>
               <Close />
             </IconButton>
           </Box>
           
+          <Box sx={{ p: 3, maxHeight: 'calc(85vh - 100px)', overflow: 'auto' }}>
           {selectedItem && (
             <>
-              <Box mb={3}>
+              <Box mb={3} display="flex" gap={1}>
                 <Chip 
-                  label={`${itemType === 'pickup' ? 'Pickup' : 'Delivery'} #${selectedItem.oid}`}
-                  color="primary"
-                  sx={{ mb: 2 }}
+                  label={itemType === 'pickup' ? 'PICKUP' : 'DELIVERY'}
+                  sx={{ bgcolor: itemType === 'pickup' ? '#dcfce7' : '#e3f2fd', color: itemType === 'pickup' ? '#00A84F' : '#2196F3', fontWeight: 700, fontSize: 11 }}
                 />
                 <Chip 
                   label={selectedItem.status}
-                  color={selectedItem.status === 'Completed' || selectedItem.status === 'Delivered' ? 'success' : 'warning'}
-                  sx={{ ml: 1 }}
+                  sx={{ bgcolor: selectedItem.status === 'Completed' || selectedItem.status === 'Delivered' ? '#e8f5e9' : '#fff3e0', color: selectedItem.status === 'Completed' || selectedItem.status === 'Delivered' ? '#43a047' : '#f57c00', fontWeight: 600 }}
                 />
               </Box>
 
-              <Grid container spacing={3}>
+              <Grid container spacing={2.5}>
                 {/* Contact Information */}
                 <Grid item xs={12}>
-                  <Typography variant="subtitle1" fontWeight="bold" mb={1} display="flex" alignItems="center">
-                    <Person sx={{ mr: 1 }} />
-                    {itemType === 'pickup' && selectedItem.procurement ? 'Vendor Information' : 'Customer Information'}
-                  </Typography>
-                  <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
-                    <Typography variant="body1" fontWeight="bold">
-                      {itemType === 'pickup' && selectedItem.procurement 
-                        ? (selectedItem.vendor_name || 'Unknown Vendor')
-                        : (selectedItem.customer_name || 'Unknown Customer')}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" display="flex" alignItems="center" mt={1}>
-                      <Phone sx={{ mr: 1, fontSize: 16 }} />
-                      {itemType === 'pickup' && selectedItem.procurement 
-                        ? (selectedItem.vendor_phone || 'Phone not provided')
-                        : (selectedItem.customer_phone || 'Phone not provided')}
-                    </Typography>
-                    {itemType === 'pickup' && selectedItem.procurement ? (
-                      selectedItem.vendor_email && (
-                        <Typography variant="body2" color="text.secondary" mt={0.5}>
-                          {selectedItem.vendor_email}
+                  <Card sx={{ bgcolor: '#f8fafc', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+                    <CardContent>
+                      <Box display="flex" alignItems="center" gap={1} mb={2}>
+                        <Box sx={{ bgcolor: itemType === 'pickup' ? '#dcfce7' : '#e3f2fd', p: 1, borderRadius: 2 }}>
+                          <Person sx={{ color: itemType === 'pickup' ? '#00A84F' : '#2196F3', fontSize: 20 }} />
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {itemType === 'pickup' && selectedItem.procurement ? 'Vendor Information' : 'Customer Information'}
                         </Typography>
-                      )
-                    ) : (
-                      selectedItem.customer_email && (
-                        <Typography variant="body2" color="text.secondary" mt={0.5}>
-                          {selectedItem.customer_email}
+                      </Box>
+                      <Typography variant="body1" fontWeight="600" mb={1}>
+                        {itemType === 'pickup' && selectedItem.procurement 
+                          ? (selectedItem.vendor_name || 'Unknown Vendor')
+                          : (selectedItem.customer_name || 'Unknown Customer')}
+                      </Typography>
+                      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                        <Phone sx={{ fontSize: 16, color: '#64748b' }} />
+                        <Typography variant="body2" color="text.secondary">
+                          {itemType === 'pickup' && selectedItem.procurement 
+                            ? (selectedItem.vendor_phone || 'Phone not provided')
+                            : (selectedItem.customer_phone || 'Phone not provided')}
                         </Typography>
-                      )
-                    )}
-                  </Box>
+                      </Box>
+                      {((itemType === 'pickup' && selectedItem.procurement && selectedItem.vendor_email) || (itemType !== 'pickup' && selectedItem.customer_email)) && (
+                        <Typography variant="body2" color="text.secondary">
+                          {itemType === 'pickup' && selectedItem.procurement ? selectedItem.vendor_email : selectedItem.customer_email}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
                 </Grid>
 
                 {/* Address Information */}
                 <Grid item xs={12}>
-                  <Typography variant="subtitle1" fontWeight="bold" mb={1} display="flex" alignItems="center">
-                    <LocationOn sx={{ mr: 1 }} />
-                    Address
-                  </Typography>
-                  <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
-                    <Typography variant="body2">
-                      {formatAddress(selectedItem)}
-                    </Typography>
-                  </Box>
+                  <Card sx={{ bgcolor: '#f8fafc', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+                    <CardContent>
+                      <Box display="flex" alignItems="center" gap={1} mb={1.5}>
+                        <Box sx={{ bgcolor: '#fef3c7', p: 1, borderRadius: 2 }}>
+                          <LocationOn sx={{ color: '#f59e0b', fontSize: 20 }} />
+                        </Box>
+                        <Typography variant="subtitle1" fontWeight="bold">Address</Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {formatAddress(selectedItem)}
+                      </Typography>
+                    </CardContent>
+                  </Card>
                 </Grid>
 
                 {/* Products Information */}
                 <Grid item xs={12}>
-                  <Typography variant="subtitle1" fontWeight="bold" mb={1} display="flex" alignItems="center">
-                    <ShoppingCart sx={{ mr: 1 }} />
-                    Products
-                  </Typography>
-                  <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
-                    {parseItems(selectedItem.items).length > 0 ? (
-                      parseItems(selectedItem.items).map((item, index) => (
-                        <Box key={index} sx={{ mb: 1, pb: 1, borderBottom: index < parseItems(selectedItem.items).length - 1 ? '1px solid #ddd' : 'none' }}>
-                          <Typography variant="body2" fontWeight="bold">
-                            {item.product_name || getProductName(item.product_id) || `Product ${index + 1}`}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Quantity: {item.quantity || 1} kg
-                          </Typography>
-                          {item.unit_price > 0 && (
-                            <Typography variant="body2" color="text.secondary">
-                              Price: ₹{item.unit_price}/kg
-                            </Typography>
-                          )}
-                          {item.quantity && item.unit_price && (
-                            <Typography variant="body2" color="success.main" fontWeight="bold">
-                              Total: ₹{(item.quantity * item.unit_price).toFixed(2)}
-                            </Typography>
-                          )}
+                  <Card sx={{ bgcolor: '#f8fafc', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+                    <CardContent>
+                      <Box display="flex" alignItems="center" gap={1} mb={2}>
+                        <Box sx={{ bgcolor: '#dbeafe', p: 1, borderRadius: 2 }}>
+                          <ShoppingCart sx={{ color: '#3b82f6', fontSize: 20 }} />
                         </Box>
-                      ))
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No product details available
-                      </Typography>
-                    )}
-                  </Box>
+                        <Typography variant="subtitle1" fontWeight="bold">Products</Typography>
+                      </Box>
+                      {(() => {
+                        const parsedItems = parseItems(selectedItem.items);
+                        console.log('Parsed items result:', parsedItems);
+                        return parsedItems.length > 0 ? (
+                          parsedItems.map((item, index) => (
+                            <Box key={index} sx={{ mb: 2, p: 2, bgcolor: 'white', borderRadius: 2, border: '1px solid #e2e8f0' }}>
+                              <Typography variant="body2" fontWeight="600" mb={0.5}>
+                                {item.product_name || `Product ${index + 1}`}
+                              </Typography>
+                              <Box display="flex" justifyContent="space-between" alignItems="center">
+                                <Typography variant="caption" color="text.secondary">
+                                  Qty: {item.quantity || 1} kg {item.unit_price > 0 && `× ₹${item.unit_price}/kg`}
+                                </Typography>
+                                {item.quantity && item.unit_price && (
+                                  <Typography variant="body2" color="success.main" fontWeight="bold">
+                                    ₹{(item.quantity * item.unit_price).toFixed(2)}
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Box>
+                          ))
+                        ) : (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary" mb={2}>No product details available</Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-all' }}>Raw data: {JSON.stringify(selectedItem.items)}</Typography>
+                          </Box>
+                        );
+                      })()}
+                    </CardContent>
+                  </Card>
                 </Grid>
 
                 {/* Order Information */}
                 <Grid item xs={12}>
-                  <Typography variant="subtitle1" fontWeight="bold" mb={1}>
-                    Order Information
-                  </Typography>
-                  <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <Typography variant="body2" color="text.secondary">Order Date</Typography>
-                        <Typography variant="body2" fontWeight="bold">
-                          {selectedItem.order_date || selectedItem.order_details?.order_date || 'Not specified'}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Typography variant="body2" color="text.secondary">
-                          {itemType === 'pickup' ? 'Pickup Time' : 'Delivery Time'}
-                        </Typography>
-                        <Typography variant="body2" fontWeight="bold">
-                          {selectedItem.time || selectedItem.delivery_time || selectedItem.order_details?.delivery_time || 'Not specified'}
-                        </Typography>
-                      </Grid>
-                      {selectedItem.total_amount > 0 && (
+                  <Card sx={{ bgcolor: '#f8fafc', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+                    <CardContent>
+                      <Typography variant="subtitle1" fontWeight="bold" mb={2}>Order Information</Typography>
+                      <Grid container spacing={2}>
                         <Grid item xs={6}>
-                          <Typography variant="body2" color="text.secondary">Total Amount</Typography>
-                          <Typography variant="body2" fontWeight="bold" color="success.main">
-                            ₹{selectedItem.total_amount || selectedItem.order_details?.total_amount || 0}
+                          <Typography variant="caption" color="text.secondary">Order Date</Typography>
+                          <Typography variant="body2" fontWeight="600">
+                            {selectedItem.order_date || selectedItem.order_details?.order_date || 'Not specified'}
                           </Typography>
                         </Grid>
-                      )}
-                      {selectedItem.order_id && (
                         <Grid item xs={6}>
-                          <Typography variant="body2" color="text.secondary">Order ID</Typography>
-                          <Typography variant="body2" fontWeight="bold">
-                            #{selectedItem.order_id}
+                          <Typography variant="caption" color="text.secondary">
+                            {itemType === 'pickup' ? 'Pickup Time' : 'Delivery Time'}
+                          </Typography>
+                          <Typography variant="body2" fontWeight="600">
+                            {selectedItem.time || selectedItem.delivery_time || selectedItem.order_details?.delivery_time || 'Not specified'}
                           </Typography>
                         </Grid>
-                      )}
-                    </Grid>
-                  </Box>
+                        {selectedItem.total_amount > 0 && (
+                          <Grid item xs={12}>
+                            <Divider sx={{ my: 1 }} />
+                            <Box display="flex" justifyContent="space-between" alignItems="center">
+                              <Typography variant="body2" fontWeight="600">Total Amount</Typography>
+                              <Typography variant="h6" fontWeight="bold" color="success.main">
+                                ₹{selectedItem.total_amount || selectedItem.order_details?.total_amount || 0}
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        )}
+                      </Grid>
+                    </CardContent>
+                  </Card>
                 </Grid>
 
                 {/* Notes */}
                 {selectedItem.notes && (
                   <Grid item xs={12}>
-                    <Typography variant="subtitle1" fontWeight="bold" mb={1}>
-                      Notes
-                    </Typography>
-                    <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
-                      <Typography variant="body2">
-                        {selectedItem.notes}
-                      </Typography>
-                    </Box>
+                    <Card sx={{ bgcolor: '#fef9c3', border: '1px solid #fde047', boxShadow: 'none' }}>
+                      <CardContent>
+                        <Typography variant="subtitle2" fontWeight="bold" mb={1}>📝 Notes</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {selectedItem.notes}
+                        </Typography>
+                      </CardContent>
+                    </Card>
                   </Grid>
                 )}
               </Grid>
             </>
           )}
+          </Box>
         </Box>
       </Modal>
 
@@ -894,18 +1113,51 @@ export default function DriverTask() {
           </Button>
         </Box>
       </Modal>
-      <Box sx={{ bgcolor: '#2bb673', color: 'white', p: 2 }}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <IconButton color="inherit" onClick={() => navigate(-1)}>
-            <ArrowBack />
-          </IconButton>
-          <Typography variant="h6" ml={1}>Task Management</Typography>
-          <IconButton color="inherit">
-            <Badge color="error" variant="dot">
-              <FilterList />
+      {/* Header */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: 'linear-gradient(90deg, #004D26, #00A84F)',
+          color: '#fff',
+          p: 2.5,
+          borderRadius: '0 0 24px 24px',
+          boxShadow: '0 4px 12px rgba(0, 77, 38, 0.2)'
+        }}
+      >
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box display="flex" alignItems="center" gap={2}>
+            <IconButton
+              onClick={() => navigate(-1)}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }}
+            >
+              <ArrowBack fontSize="small" />
+            </IconButton>
+            <Typography variant="h6" fontWeight="bold">
+              Task Management
+            </Typography>
+          </Box>
+          <IconButton 
+            onClick={() => navigate('/driver-notifications')}
+            sx={{ 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              color: 'white',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+            }}
+          >
+            <Badge badgeContent={notificationCount} color="error">
+              <Notifications sx={{ fontSize: 26 }} />
             </Badge>
           </IconButton>
-        </Grid>
+        </Box>
       </Box>
 
       <Box sx={{ bgcolor: '#fff', px: 2 }}>
@@ -915,142 +1167,111 @@ export default function DriverTask() {
         </Tabs>
       </Box>
 
-      <Container sx={{ mt: 2 }}>
+      <Container sx={{ mt: 2, px: 2 }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress color="success" />
           </Box>
         ) : error ? (
-          <Alert severity="error">{error}</Alert>
+          <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
         ) : (
           <>
             {tabIndex === 0 && (
               pickups.length === 0 ? (
-                <Typography>No pickups assigned.</Typography>
+                <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3, border: '2px dashed #e0e0e0', bgcolor: '#fafafa' }}>
+                  <LocalShipping sx={{ fontSize: 64, color: '#bdbdbd', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary" fontWeight="500">No pickups assigned</Typography>
+                  <Typography variant="body2" color="text.secondary" mt={1}>Check back later for new tasks.</Typography>
+                </Card>
               ) : (
                 pickups.map((pickup, index) => (
-                  <Card key={index} sx={{ mb: 2, cursor: 'pointer' }} onClick={() => handleOpenDetailModal(pickup, 'pickup')}>
-                    <CardContent>
-                      <Grid container justifyContent="space-between" alignItems="center">
-                        <Typography variant="subtitle1">
-                          Pickup {pickup.oid || pickup.order_id}
-                        </Typography>
-                        <Typography variant="body2" color="green">
-                          {pickup.time || pickup.delivery_time || 'Time not set'}
-                        </Typography>
-                      </Grid>
-                      <Typography variant="body2">{pickup.CustomerProfile?.institution_name || pickup.location || 'Unknown Location'}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {formatAddress(pickup)}
-                      </Typography>
-                      <Typography variant="body2">
-                        {pickup.CustomerProfile?.deliveryNo ? `Delivery No: ${pickup.CustomerProfile.deliveryNo}` : ''}
-                      </Typography>
-                      <Box mt={1} display="flex" justifyContent="space-between" alignItems="center">
-                        <Button
-                          variant="contained"
-                          size="small"
-                          sx={{
-                            bgcolor:
-                              pickup.status && (pickup.status.toLowerCase().trim() === 'pending' || pickup.status === 'Waiting for Approval')
-                                ? 'green'
-                                : pickup.status && pickup.status.toLowerCase().trim() === 'picked'
-                                ? 'orange'
-                                : 'grey',
-                            color: 'white'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation(); // Prevent modal from opening
-                            if ((pickup.status && (pickup.status.toLowerCase().trim() === 'pending' || pickup.status === 'Waiting for Approval')) && pickup.procurement) {
-                              handleStartPickup(pickup);
-                            } else if (pickup.status && pickup.status.toLowerCase().trim() === 'approved' && pickup.procurement) {
-                              handleOpenPickupModal(pickup);
-                            }
-                          }}
+                  <Card key={index} sx={{ mb: 2, borderRadius: 3, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid #f0f0f0', transition: 'all 0.3s ease', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.12)', transform: 'translateY(-2px)' } }}>
+                    <Box display="flex">
+                      <Box sx={{ width: 6, background: 'linear-gradient(180deg, #00A84F, #004D26)' }} />
+                      <CardContent sx={{ flex: 1, p: 2.5 }}>
+                        <Box display="flex" alignItems="center" justifyContent="space-between" mb={1.5}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Box sx={{ bgcolor: '#dcfce7', color: '#00A84F', px: 1.5, py: 0.5, borderRadius: 2, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>PICKUP</Box>
+                            <Typography variant="subtitle2" fontWeight="bold" color="text.primary">#{pickup.oid || pickup.order_id}</Typography>
+                          </Box>
+                          <Box sx={{ bgcolor: pickup.status === 'Picked' ? '#fff3e0' : '#f3e5f5', color: pickup.status === 'Picked' ? '#f57c00' : '#7b1fa2', px: 1.5, py: 0.5, borderRadius: 2, fontSize: 11, fontWeight: 600 }}>
+                            {pickup.status === 'Picked' ? 'Completed' : 'Ready'}
+                          </Box>
+                        </Box>
+                        <Typography variant="body1" fontWeight="600" mb={0.5}>{pickup.CustomerProfile?.institution_name || pickup.location || 'Unknown Location'}</Typography>
+                        <Typography variant="body2" color="text.secondary" mb={0.5} sx={{ fontSize: 13 }}>{formatAddress(pickup)}</Typography>
+                        <Typography variant="caption" color="text.secondary" display="flex" alignItems="center" gap={0.5}><Schedule sx={{ fontSize: 14 }} />{pickup.time || pickup.delivery_time || 'Time not set'}</Typography>
+                        <Button 
+                          variant="contained" 
+                          fullWidth 
+                          sx={{ 
+                            mt: 2, 
+                            py: 1.2, 
+                            borderRadius: 2, 
+                            textTransform: 'none', 
+                            fontWeight: 600, 
+                            fontSize: 14, 
+                            color: 'white',
+                            ...getPickupButtonStyle(pickup)
+                          }} 
+                          onClick={(e) => handlePickupButtonClick(e, pickup)}
                           disabled={pickup.status && pickup.status.toLowerCase().trim() === 'picked'}
                         >
-                          {(pickup.status && (pickup.status.toLowerCase().trim() === 'pending' || pickup.status === 'Waiting for Approval'))
-                            ? 'Start Pickup'
-                            : pickup.status && pickup.status.toLowerCase().trim() === 'approved'
-                            ? 'Mark as Picked'
-                            : pickup.status && pickup.status.toLowerCase().trim() === 'picked'
-                            ? 'Picked'
-                            : 'Picked'}
+                          {getPickupButtonText(pickup)}
                         </Button>
-                      </Box>
-                    </CardContent>
+                        <Button variant="text" fullWidth sx={{ mt: 1, textTransform: 'none', fontSize: 13 }} onClick={() => handleOpenDetailModal(pickup, 'pickup')}>View Details</Button>
+                      </CardContent>
+                    </Box>
                   </Card>
                 ))
               )
             )}
             {tabIndex === 1 && (
               deliveries.length === 0 ? (
-                <Typography>No deliveries assigned.</Typography>
+                <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3, border: '2px dashed #e0e0e0', bgcolor: '#fafafa' }}>
+                  <LocalShipping sx={{ fontSize: 64, color: '#bdbdbd', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary" fontWeight="500">No deliveries assigned</Typography>
+                  <Typography variant="body2" color="text.secondary" mt={1}>Check back later for new tasks.</Typography>
+                </Card>
               ) : (
                 deliveries.map((delivery, index) => (
-                  <Card key={index} sx={{ mb: 2, cursor: 'pointer' }} onClick={() => handleOpenDetailModal(delivery, 'delivery')}>
-                    <CardContent>
-                      <Grid container justifyContent="space-between" alignItems="center">
-                        <Typography variant="subtitle1">
-                          Delivery {delivery.oid || delivery.order_id}
-                        </Typography>
-                        <Typography variant="body2" color="blue">
-                          {delivery.time || delivery.delivery_time || 'Time not set'}
-                        </Typography>
-                      </Grid>
-                      <Typography variant="body2">
-                        {delivery.CustomerProfile?.institution_name || delivery.location || 'Unknown Location'}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {formatAddress(delivery)}
-                      </Typography>
-                      <Typography variant="body2">
-                        {delivery.CustomerProfile?.deliveryNo ? `Delivery No: ${delivery.CustomerProfile.deliveryNo}` : ''}
-                      </Typography>
-                      <Box mt={1} display="flex" justifyContent="space-between" alignItems="center">
-                        {delivery.status === 'Out for Delivery' ? (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            sx={{ bgcolor: 'orange', color: 'white' }}
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent modal from opening
-                              handleOpenModal(delivery);
-                            }}
-                          >
-                            Out for Delivery
-                          </Button>
-                        ) : delivery.status === 'Completed' ? (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            sx={{ bgcolor: 'blue', color: 'white' }}
-                          >
-                            Delivered
-                          </Button>
-                        ) : delivery.status === 'Delivered' ? (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            sx={{ bgcolor: 'green', color: 'white' }}
-                          >
-                            Delivered
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            sx={{ bgcolor: 'blue', color: 'white' }}
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent modal from opening
-                              handleStartDelivery(delivery);
-                            }}
-                          >
-                            Start Delivery
-                          </Button>
-                        )}
-                      </Box>
-                    </CardContent>
+                  <Card key={index} sx={{ mb: 2, borderRadius: 3, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid #f0f0f0', transition: 'all 0.3s ease', '&:hover': { boxShadow: '0 4px 16px rgba(0,0,0,0.12)', transform: 'translateY(-2px)' } }}>
+                    <Box display="flex">
+                      <Box sx={{ width: 6, background: 'linear-gradient(180deg, #2196F3, #1565C0)' }} />
+                      <CardContent sx={{ flex: 1, p: 2.5 }}>
+                        <Box display="flex" alignItems="center" justifyContent="space-between" mb={1.5}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Box sx={{ bgcolor: '#e3f2fd', color: '#2196F3', px: 1.5, py: 0.5, borderRadius: 2, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>DELIVERY</Box>
+                            <Typography variant="subtitle2" fontWeight="bold" color="text.primary">#{delivery.oid || delivery.order_id}</Typography>
+                          </Box>
+                          <Box sx={{ bgcolor: delivery.status === 'Out for Delivery' ? '#fff3e0' : delivery.status === 'Delivered' || delivery.status === 'Completed' ? '#e8f5e9' : '#f3e5f5', color: delivery.status === 'Out for Delivery' ? '#f57c00' : delivery.status === 'Delivered' || delivery.status === 'Completed' ? '#43a047' : '#7b1fa2', px: 1.5, py: 0.5, borderRadius: 2, fontSize: 11, fontWeight: 600 }}>
+                            {delivery.status === 'Out for Delivery' ? 'In Progress' : delivery.status === 'Delivered' || delivery.status === 'Completed' ? 'Completed' : 'Ready'}
+                          </Box>
+                        </Box>
+                        <Typography variant="body1" fontWeight="600" mb={0.5}>{delivery.CustomerProfile?.institution_name || delivery.location || 'Unknown Location'}</Typography>
+                        <Typography variant="body2" color="text.secondary" mb={0.5} sx={{ fontSize: 13 }}>{formatAddress(delivery)}</Typography>
+                        <Typography variant="caption" color="text.secondary" display="flex" alignItems="center" gap={0.5}><Schedule sx={{ fontSize: 14 }} />{delivery.time || delivery.delivery_time || 'Time not set'}</Typography>
+                        <Button 
+                          variant="contained" 
+                          fullWidth 
+                          sx={{ 
+                            mt: 2, 
+                            py: 1.2, 
+                            borderRadius: 2, 
+                            textTransform: 'none', 
+                            fontWeight: 600, 
+                            fontSize: 14, 
+                            color: 'white',
+                            ...getDeliveryButtonStyle(delivery)
+                          }} 
+                          onClick={(e) => handleDeliveryButtonClick(e, delivery)}
+                          disabled={delivery.status === 'Delivered' || delivery.status === 'Completed'}
+                        >
+                          {getDeliveryButtonText(delivery)}
+                        </Button>
+                        <Button variant="text" fullWidth sx={{ mt: 1, textTransform: 'none', fontSize: 13 }} onClick={() => handleOpenDetailModal(delivery, 'delivery')}>View Details</Button>
+                      </CardContent>
+                    </Box>
                   </Card>
                 ))
               )
@@ -1058,7 +1279,21 @@ export default function DriverTask() {
           </>
         )}
       </Container>
-      <DriverFooter />
+      {/* Bottom Navigation */}
+      <Paper
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000
+        }}
+        elevation={3}
+      >
+        <BottomNavigation showLabels sx={{ backgroundColor: '#f5f5f5' }}>
+          <DriverFooter />
+        </BottomNavigation>
+      </Paper>
     </Box>
   );
 }
