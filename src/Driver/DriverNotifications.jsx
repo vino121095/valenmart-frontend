@@ -20,14 +20,12 @@ import {
   CheckCircle as CheckCircleIcon,
   LocalShipping as ShippingIcon,
   Payment as PaymentIcon,
-  Assignment as AssignmentIcon,
-  ArrowBackIosNew as ArrowBackIosNewIcon
+  Assignment as AssignmentIcon
 } from '@mui/icons-material';
-import Header from '../Header';
 import { useNavigate, useLocation } from 'react-router-dom';
 import baseurl from '../baseurl/ApiService';
-import Footer from '../Footer';
 import DriverFooter from '../driverfooter';
+import velaanLogo from '../assets/velaanLogo.png';
 
 const DriverNotifications = () => {
   const navigate = useNavigate();
@@ -38,6 +36,7 @@ const DriverNotifications = () => {
   const [error, setError] = useState('');
   const [notificationCount, setNotificationCount] = useState(0);
   const [driverInfo, setDriverInfo] = useState(initialDriverInfo);
+  const [driverProfileImage, setDriverProfileImage] = useState('');
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -102,7 +101,9 @@ const DriverNotifications = () => {
         const lastName = driverData.last_name || '';
         const fullName = lastName ? `${firstName} ${lastName}` : firstName;
         const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+        const profileImage = driverData.driver_image ? `${baseurl}/${driverData.driver_image}` : '';
         setDriverInfo({ name: fullName, initials });
+        setDriverProfileImage(profileImage);
       } catch (error) {
         setDriverInfo({ name: 'Driver', initials: 'D' });
       }
@@ -189,50 +190,31 @@ const DriverNotifications = () => {
         }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Box display="flex" alignItems="center" gap={2}>
-            <IconButton
-              onClick={() => navigate(-1)}
-              size="small"
-              sx={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
+          <img src={velaanLogo} alt="Velaan Logo" style={{ height: '50px' }} />
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <IconButton 
+              sx={{ 
+                backgroundColor: 'rgba(255,255,255,0.2)', 
                 color: 'white',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
               }}
             >
-              <ArrowBackIosNewIcon fontSize="small" />
+              <Badge 
+                badgeContent={notificationCount} 
+                sx={{
+                  '& .MuiBadge-badge': {
+                    bgcolor: '#dc2626',
+                    color: 'white'
+                  }
+                }}
+              >
+                <NotificationsIcon />
+              </Badge>
             </IconButton>
-            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 48, height: 48, fontSize: 20, fontWeight: 'bold' }}>
-              {driverInfo.initials}
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', fontWeight: 'bold', width: 40, height: 40 }} src={driverProfileImage || undefined}>
+              {!driverProfileImage && driverInfo.initials}
             </Avatar>
-            <Box>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: 13 }}>
-                Hello,
-              </Typography>
-              <Typography variant="h6" fontWeight="bold">
-                {driverInfo.name}
-              </Typography>
-            </Box>
           </Box>
-
-          <IconButton 
-            sx={{ 
-              backgroundColor: 'rgba(255,255,255,0.2)', 
-              color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }}
-          >
-            <Badge 
-              badgeContent={notificationCount} 
-              sx={{
-                '& .MuiBadge-badge': {
-                  bgcolor: '#dc2626',
-                  color: 'white'
-                }
-              }}
-            >
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
         </Box>
       </Box>
       {error && (

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AppBar, Box, Button, Card, CardContent, Container, Grid, IconButton, Typography, Tabs, Tab, Avatar, Chip, CircularProgress, Alert, Paper, BottomNavigation, Badge } from '@mui/material';
-import { ArrowBack, FilterList, LocalShipping, ShoppingCart } from '@mui/icons-material';
+import { FilterList, LocalShipping, ShoppingCart } from '@mui/icons-material';
 import { Notifications, Dashboard, Assignment, Person, ListAlt } from '@mui/icons-material';
 import DriverFooter from '../driverfooter';
 import baseurl from '../baseurl/ApiService';
+import velaanLogo from '../assets/velaanLogo.png';
 
 export default function DriverLog() {
   const location = useLocation();
@@ -25,8 +26,33 @@ export default function DriverLog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notificationCount, setNotificationCount] = useState(0);
+  const [driverName, setDriverName] = useState('Driver');
+  const [driverProfileImage, setDriverProfileImage] = useState('');
 
   useEffect(() => {
+    const fetchDriverDetails = async () => {
+      try {
+        const userData = localStorage.getItem('userData');
+        const parsedData = userData ? JSON.parse(userData) : {};
+        const driverId = localStorage.getItem('driver_id') || parsedData.did || parsedData.id;
+        if (!driverId) return;
+        const authToken = localStorage.getItem('token');
+        const response = await fetch(`${baseurl}/api/driver-details/${driverId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        const driverData = data.data || data;
+        const firstName = driverData.first_name || driverData.name || 'Driver';
+        const lastName = driverData.last_name || '';
+        const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+        const profileImage = driverData.driver_image ? `${baseurl}/${driverData.driver_image}` : '';
+        setDriverName(fullName);
+        setDriverProfileImage(profileImage);
+      } catch (e) {}
+    };
+    fetchDriverDetails();
     const fetchNotifications = async () => {
       try {
         const authToken = localStorage.getItem('token');
@@ -225,34 +251,24 @@ export default function DriverLog() {
         }}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
-            <IconButton
-              onClick={() => navigate(-1)}
-              size="small"
-              sx={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
+          <img src={velaanLogo} alt="Velaan Logo" style={{ height: '50px' }} />
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <IconButton 
+              onClick={() => navigate('/driver-notifications')}
+              sx={{ 
+                backgroundColor: 'rgba(255,255,255,0.2)', 
                 color: 'white',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
               }}
             >
-              <ArrowBack fontSize="small" />
+              <Badge badgeContent={notificationCount} color="error">
+                <Notifications sx={{ fontSize: 26 }} />
+              </Badge>
             </IconButton>
-            <Typography variant="h6" fontWeight="bold">
-              Activity Logs
-            </Typography>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', fontWeight: 'bold', width: 40, height: 40 }} src={driverProfileImage || undefined}>
+              {!driverProfileImage && (driverName?.[0] || 'D')}
+            </Avatar>
           </Box>
-          <IconButton 
-            onClick={() => navigate('/driver-notifications')}
-            sx={{ 
-              backgroundColor: 'rgba(255,255,255,0.2)', 
-              color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }}
-          >
-            <Badge badgeContent={notificationCount} color="error">
-              <Notifications sx={{ fontSize: 26 }} />
-            </Badge>
-          </IconButton>
         </Box>
       </Box>
 

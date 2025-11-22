@@ -20,6 +20,9 @@ import {
     List,
     ListItem,
     ListItemText,
+    Drawer,
+    Slider as MuiSlider,
+    Divider,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -27,6 +30,9 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import Footer from "../Footer";
 import baseurl from "../baseurl/ApiService";
 import Header from "../Header";
@@ -48,6 +54,54 @@ const Products = () => {
     });
     const { incrementCartCount, fetchCartCount } = useCart();
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+    const [priceRange, setPriceRange] = useState([0, 1000]);
+
+    // Banner images data
+    const bannerImages = [
+        {
+            id: 1,
+            image: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800",
+            title: "Fresh Vegetables",
+            subtitle: "Up to 30% OFF"
+        },
+        {
+            id: 2,
+            image: "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=800",
+            title: "Organic Fruits",
+            subtitle: "Special Offers"
+        },
+        {
+            id: 3,
+            image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800",
+            title: "Farm Fresh Daily",
+            subtitle: "Best Quality Guaranteed"
+        }
+    ];
+
+    // Slider settings
+    const sliderSettings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        arrows: false,
+        customPaging: (i) => (
+            <Box
+                sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    backgroundColor: "#ccc",
+                    transition: "all 0.3s",
+                }}
+            />
+        ),
+        dotsClass: "slick-dots custom-dots",
+    };
 
     useEffect(() => {
         fetch(`${baseurl}/api/category/all`)
@@ -123,7 +177,6 @@ const Products = () => {
                 headers["Authorization"] = `Bearer ${authToken}`;
             }
 
-            // Fetch the cart and find the current quantity for this product
             const cart_response = await fetch(
                 `${baseurl}/api/cart/${parsedCustomerId}`,
                 {
@@ -200,7 +253,8 @@ const Products = () => {
     const filteredProducts = products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = selectedCategory ? product.category === selectedCategory : true;
-        return matchesSearch && matchesCategory;
+        const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
+        return matchesSearch && matchesCategory && matchesPrice;
     });
 
     const searchSuggestions = searchQuery.length > 0
@@ -223,7 +277,7 @@ const Products = () => {
 
             {/* Search */}
             <Box sx={{ px: 2 }}>
-                <Box sx={{ position: "relative" }}>
+                <Box sx={{ position: "relative", display: "flex", gap: 1, alignItems: "center" }}>
                     <Paper
                         component="form"
                         sx={{
@@ -236,6 +290,7 @@ const Products = () => {
                             py: 0.5,
                             backgroundColor: "#f5f5f5",
                             boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            flex: 1,
                         }}
                     >
                         <SearchIcon sx={{ color: "#666", mr: 1 }} />
@@ -248,6 +303,21 @@ const Products = () => {
                             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                         />
                     </Paper>
+                    <IconButton
+                        onClick={() => setFilterDrawerOpen(true)}
+                        sx={{
+                            mt: 2,
+                            mb: 3,
+                            backgroundColor: "#f5f5f5",
+                            borderRadius: 3,
+                            height: 40,
+                            width: 48,
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            "&:hover": { backgroundColor: "#e0e0e0" },
+                        }}
+                    >
+                        <FilterListIcon sx={{ color: "#666" }} />
+                    </IconButton>
                     {showSuggestions && searchSuggestions.length > 0 && (
                         <Paper
                             sx={{
@@ -280,22 +350,123 @@ const Products = () => {
                     )}
                 </Box>
 
-                {/* Filter and Sort */}
-                <Box sx={{ mb: 3, display: "flex", gap: 2, alignItems: "center" }}>
-                    <FilterListIcon sx={{ color: "#666" }} />
-                    <FormControl size="small" sx={{ minWidth: 200 }}>
-                        <Select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            displayEmpty
-                            sx={{ borderRadius: 2, backgroundColor: "#f5f5f5" }}
-                        >
-                            <MenuItem value="">Default</MenuItem>
-                            <MenuItem value="priceLowToHigh">Price: Low to High</MenuItem>
-                            <MenuItem value="priceHighToLow">Price: High to Low</MenuItem>
-                        </Select>
-                    </FormControl>
+                {/* Banner Slider */}
+                <Box sx={{ mb: 3, position: 'relative' }}>
+                    <style>
+                        {`
+                            .custom-dots {
+                                bottom: 15px !important;
+                            }
+                            .custom-dots li {
+                                margin: 0 4px;
+                            }
+                            .custom-dots li button:before {
+                                display: none;
+                            }
+                            .custom-dots li div {
+                                width: 8px;
+                                height: 8px;
+                                border-radius: 50%;
+                                background-color: rgba(255, 255, 255, 0.5);
+                                transition: all 0.3s;
+                            }
+                            .custom-dots li.slick-active div {
+                                width: 24px;
+                                border-radius: 4px;
+                                background-color: #fff;
+                            }
+                        `}
+                    </style>
+                    <Slider {...sliderSettings}>
+                        {bannerImages.map((banner) => (
+                            <Box key={banner.id}>
+                                <Box
+                                    sx={{
+                                        position: 'relative',
+                                        height: { xs: 180, sm: 220, md: 260 },
+                                        borderRadius: 3,
+                                        overflow: 'hidden',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    }}
+                                >
+                                    <Box
+                                        component="img"
+                                        src={banner.image}
+                                        alt={banner.title}
+                                        sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                        }}
+                                    />
+                                    <Box
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            background: 'linear-gradient(to right, rgba(0,77,38,0.8) 0%, rgba(0,77,38,0.4) 50%, transparent 100%)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'center',
+                                            px: { xs: 3, sm: 4, md: 5 },
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="h4"
+                                            sx={{
+                                                color: '#fff',
+                                                fontWeight: 700,
+                                                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+                                                mb: 1,
+                                                textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+                                            }}
+                                        >
+                                            {banner.title}
+                                        </Typography>
+                                        <Typography
+                                            variant="h6"
+                                            sx={{
+                                                color: '#fff',
+                                                fontWeight: 600,
+                                                fontSize: { xs: '1rem', sm: '1.2rem', md: '1.5rem' },
+                                                mb: 2,
+                                                textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+                                            }}
+                                        >
+                                            {banner.subtitle}
+                                        </Typography>
+                                        <Button
+                                            variant="contained"
+                                            sx={{
+                                                background: 'linear-gradient(90deg, #00A84F, #00D65C)',
+                                                color: '#fff',
+                                                fontWeight: 600,
+                                                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                                                px: { xs: 3, sm: 4 },
+                                                py: { xs: 1, sm: 1.2 },
+                                                borderRadius: 2,
+                                                textTransform: 'none',
+                                                width: 'fit-content',
+                                                boxShadow: '0 4px 12px rgba(0,168,79,0.4)',
+                                                '&:hover': {
+                                                    background: 'linear-gradient(90deg, #008A40, #00B84D)',
+                                                    boxShadow: '0 6px 16px rgba(0,168,79,0.5)',
+                                                },
+                                            }}
+                                            onClick={() => navigate('/all-products')}
+                                        >
+                                            Shop Now
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            </Box>
+                        ))}
+                    </Slider>
                 </Box>
+
+
 
                 {/* Categories */}
                 <Box sx={{ mb: 3 }}>
@@ -373,7 +544,6 @@ const Products = () => {
                                 </CardContent>
                             </Card>
                         ))}
-
                     </Box>
                 </Box>
 
@@ -583,6 +753,124 @@ const Products = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+
+            {/* Filter Drawer */}
+            <Drawer
+                anchor="bottom"
+                open={filterDrawerOpen}
+                onClose={() => setFilterDrawerOpen(false)}
+                PaperProps={{
+                    sx: {
+                        borderTopLeftRadius: 16,
+                        borderTopRightRadius: 16,
+                        maxHeight: "70vh",
+                    },
+                }}
+            >
+                <Box sx={{ p: 3 }}>
+                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                        Filters
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+
+                    {/* Price Range Filter */}
+                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                        Price Range
+                    </Typography>
+                    <Box sx={{ px: 1 }}>
+                        <MuiSlider
+                            value={priceRange}
+                            onChange={(e, newValue) => setPriceRange(newValue)}
+                            valueLabelDisplay="auto"
+                            min={0}
+                            max={1000}
+                            sx={{
+                                color: "#00A84F",
+                                "& .MuiSlider-thumb": {
+                                    backgroundColor: "#00A84F",
+                                },
+                                "& .MuiSlider-track": {
+                                    backgroundColor: "#00A84F",
+                                },
+                                "& .MuiSlider-rail": {
+                                    backgroundColor: "#e0e0e0",
+                                },
+                            }}
+                        />
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+                            <Typography variant="body2" sx={{ color: "#666" }}>
+                                ₹{priceRange[0]}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: "#666" }}>
+                                ₹{priceRange[1]}
+                            </Typography>
+                        </Box>
+                    </Box>
+
+                    <Divider sx={{ my: 3 }} />
+
+                    {/* Sort By */}
+                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                        Sort By
+                    </Typography>
+                    <FormControl fullWidth size="small">
+                        <Select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            displayEmpty
+                            sx={{ borderRadius: 2, backgroundColor: "#f5f5f5" }}
+                        >
+                            <MenuItem value="">Default</MenuItem>
+                            <MenuItem value="priceLowToHigh">Price: Low to High</MenuItem>
+                            <MenuItem value="priceHighToLow">Price: High to Low</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    {/* Action Buttons */}
+                    <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+                        <Button
+                            fullWidth
+                            variant="outlined"
+                            onClick={() => {
+                                setPriceRange([0, 1000]);
+                                setSortBy("");
+                            }}
+                            sx={{
+                                borderColor: "#00A84F",
+                                color: "#00A84F",
+                                borderRadius: 2,
+                                py: 1.2,
+                                fontWeight: 600,
+                                textTransform: "none",
+                                "&:hover": {
+                                    borderColor: "#008A40",
+                                    backgroundColor: "rgba(0, 168, 79, 0.04)",
+                                },
+                            }}
+                        >
+                            Reset
+                        </Button>
+                        <Button
+                            fullWidth
+                            variant="contained"
+                            onClick={() => setFilterDrawerOpen(false)}
+                            sx={{
+                                background: "linear-gradient(90deg, #004D26, #00A84F)",
+                                color: "#fff",
+                                borderRadius: 2,
+                                py: 1.2,
+                                fontWeight: 600,
+                                textTransform: "none",
+                                "&:hover": {
+                                    background: "linear-gradient(90deg, #003D1F, #008A40)",
+                                },
+                            }}
+                        >
+                            Apply Filters
+                        </Button>
+                    </Box>
+                </Box>
+            </Drawer>
 
             {/* Footer */}
             <Paper

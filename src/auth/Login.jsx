@@ -29,7 +29,7 @@ import {
   Store,
   LocalShipping
 } from '@mui/icons-material';
-import logo from '../assets/velaanLogo.png';
+import logo from '../assets/velaanLogoLogin.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App'; // Import the useAuth hook
 import baseurl from '../baseurl/ApiService';
@@ -55,7 +55,7 @@ const LoginPage = () => {
 
   // Tab configuration
   const tabs = [
-    { label: 'User', icon: <Person />, endpoint: '/user/login', redirectTo: '/dashboard' },
+    { label: 'User', icon: <Person />, endpoint: '/user/login', redirectTo: '/products' },
     { label: 'Vendor', icon: <Store />, endpoint: '/vendor/login', redirectTo: '/vdashboard' },
     { label: 'Driver', icon: <LocalShipping />, endpoint: '/driver-details/login', redirectTo: '/driver-dashboard' }
   ];
@@ -65,7 +65,7 @@ const LoginPage = () => {
     if (isAuthenticated) {
       const userRole = localStorage.getItem('userRole');
       if (userRole === 'user') {
-        navigate('/dashboard');
+        navigate('/products');
       } else if (userRole === 'vendor') {
         navigate('/vdashboard');
       } else if (userRole === 'driver') {

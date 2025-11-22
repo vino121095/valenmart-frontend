@@ -19,11 +19,13 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import Badge from '@mui/material/Badge';
 import VendorFooter from '../vendorfooter';
 import baseurl from '../baseurl/ApiService';
+import velaanLogo from '../assets/velaanLogo.png';
 
 const AvailableStock = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [vendorName, setVendorName] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,7 +65,22 @@ const AvailableStock = () => {
         }
       } catch (e) {}
     };
+    const fetchVendorName = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const vendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
+        const token = localStorage.getItem('token');
+        if (vendorId && token) {
+          const response = await fetch(`${baseurl}/api/vendor/${vendorId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          setVendorName(data.full_name || data.org_name || data.company || data.name || 'Vendor');
+        }
+      } catch (e) { setVendorName('Vendor'); }
+    };
     fetchNotifications();
+    fetchVendorName();
   }, []);
 
   return (
@@ -84,40 +101,24 @@ const AvailableStock = () => {
         }}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
+          <Box component="img" src={velaanLogo} alt="Velaan Logo" sx={{ height: 50 }} />
+          <Box display="flex" alignItems="center" gap={1.5}>
             <IconButton
-              onClick={() => navigate(-1)}
-              size="small"
+              onClick={() => navigate('/vendor-notifications')}
               sx={{
                 backgroundColor: 'rgba(255,255,255,0.2)',
                 color: 'white',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
               }}
             >
-              <ArrowBackIcon fontSize="small" />
+              <Badge badgeContent={notificationCount} color="error">
+                <NotificationsIcon />
+              </Badge>
             </IconButton>
-            <Box>
-              <Typography variant="h6" fontWeight="bold">
-                Available Stocks
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: 13 }}>
-                {products.length} products in stock
-              </Typography>
-            </Box>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 40, height: 40, fontSize: 18, fontWeight: 'bold' }}>
+              {vendorName?.[0] || 'V'}
+            </Avatar>
           </Box>
-
-          <IconButton
-            onClick={() => navigate('/vendor-notifications')}
-            sx={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }}
-          >
-            <Badge badgeContent={notificationCount} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
         </Box>
       </Box>
 

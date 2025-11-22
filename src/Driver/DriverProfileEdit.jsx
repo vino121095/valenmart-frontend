@@ -15,11 +15,11 @@ import {
   MenuItem,
   BottomNavigation
 } from '@mui/material';
-import { PhotoCamera, ArrowBack, Notifications } from '@mui/icons-material';
+import { PhotoCamera, Notifications } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import baseurl from '../baseurl/ApiService';
-import Header from '../Header';
 import DriverFooter from '../driverfooter';
+import velaanLogo from '../assets/velaanLogo.png';
 
 const statusOptions = ['Available', 'Busy', 'Inactive'];
 
@@ -54,6 +54,7 @@ const DriverProfileEdit = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [driverName, setDriverName] = useState('Driver');
 
   // Get driver ID from localStorage
   useEffect(() => {
@@ -75,6 +76,10 @@ const DriverProfileEdit = () => {
       if (!response.ok) throw new Error('Failed to fetch profile');
       const responseData = await response.json();
       const data = responseData.data || responseData;
+      const firstName = data.first_name || data.name || 'Driver';
+      const lastName = data.last_name || '';
+      const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+      setDriverName(fullName);
 
       // Helper to format date strings to YYYY-MM-DD
       const formatDate = (dateString) => {
@@ -233,34 +238,24 @@ const DriverProfileEdit = () => {
         }}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
-            <IconButton
-              onClick={() => navigate(-1)}
-              size="small"
-              sx={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
+          <img src={velaanLogo} alt="Velaan Logo" style={{ height: '50px' }} />
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <IconButton 
+              onClick={() => navigate('/driver-notifications')}
+              sx={{ 
+                backgroundColor: 'rgba(255,255,255,0.2)', 
                 color: 'white',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
               }}
             >
-              <ArrowBack fontSize="small" />
+              <Badge badgeContent={notificationCount} color="error">
+                <Notifications sx={{ fontSize: 26 }} />
+              </Badge>
             </IconButton>
-            <Typography variant="h6" fontWeight="bold">
-              Edit Driver Profile
-            </Typography>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', fontWeight: 'bold', width: 40, height: 40 }} src={profileData.profileImageUrl || undefined}>
+              {!profileData.profileImageUrl && (driverName?.[0] || 'D')}
+            </Avatar>
           </Box>
-          <IconButton 
-            onClick={() => navigate('/driver-notifications')}
-            sx={{ 
-              backgroundColor: 'rgba(255,255,255,0.2)', 
-              color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }}
-          >
-            <Badge badgeContent={notificationCount} color="error">
-              <Notifications sx={{ fontSize: 26 }} />
-            </Badge>
-          </IconButton>
         </Box>
       </Box>
 

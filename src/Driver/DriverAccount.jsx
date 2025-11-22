@@ -24,8 +24,9 @@ import {
   Badge
   // BottomNavigation, BottomNavigationAction, Paper 
 } from '@mui/material';
-import { Notifications, Dashboard, Assignment, Person, ListAlt, ArrowBack, LocalShipping, ShoppingCart } from '@mui/icons-material';
+import { Notifications, Dashboard, Assignment, Person, ListAlt, LocalShipping, ShoppingCart } from '@mui/icons-material';
 import DriverFooter from '../driverfooter';
+import velaanLogo from '../assets/velaanLogo.png';
 
 import baseurl from '../baseurl/ApiService';
 
@@ -180,34 +181,24 @@ export default function DriverAccount() {
         }}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
-            <IconButton
-              onClick={() => navigate(-1)}
-              size="small"
-              sx={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
+          <img src={velaanLogo} alt="Velaan Logo" style={{ height: '50px' }} />
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <IconButton 
+              onClick={() => navigate('/driver-notifications')}
+              sx={{ 
+                backgroundColor: 'rgba(255,255,255,0.2)', 
                 color: 'white',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
               }}
             >
-              <ArrowBack fontSize="small" />
+              <Badge badgeContent={notificationCount} color="error">
+                <Notifications sx={{ fontSize: 26 }} />
+              </Badge>
             </IconButton>
-            <Typography variant="h6" fontWeight="bold">
-              Account Settings
-            </Typography>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', fontWeight: 'bold', width: 40, height: 40 }} src={driverInfo.profileImage || undefined}>
+              {!driverInfo.profileImage && driverInfo.initials}
+            </Avatar>
           </Box>
-          <IconButton 
-            onClick={() => navigate('/driver-notifications')}
-            sx={{ 
-              backgroundColor: 'rgba(255,255,255,0.2)', 
-              color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }}
-          >
-            <Badge badgeContent={notificationCount} color="error">
-              <Notifications sx={{ fontSize: 26 }} />
-            </Badge>
-          </IconButton>
         </Box>
       </Box>
 

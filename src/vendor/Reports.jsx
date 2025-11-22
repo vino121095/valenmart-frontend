@@ -19,6 +19,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DescriptionIcon from '@mui/icons-material/Description';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import { Avatar } from '@mui/material';
+import velaanLogo from '../assets/velaanLogo.png';
 import {
   ResponsiveContainer,
   LineChart,
@@ -45,6 +47,7 @@ const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [vendorName, setVendorName] = useState('');
   const reportRef = useRef(null);
 
   useEffect(() => {
@@ -63,7 +66,7 @@ const Reports = () => {
     fetchData();
   }, []);
 
-  // Fetch notifications
+  // Fetch notifications and vendor name
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -86,7 +89,22 @@ const Reports = () => {
         }
       } catch (e) {}
     };
+    const fetchVendorName = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const vendorId = userData.id || userData.vendor_id || localStorage.getItem('vendor_id');
+        const token = localStorage.getItem('token');
+        if (vendorId && token) {
+          const response = await fetch(`${baseurl}/api/vendor/${vendorId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          setVendorName(data.full_name || data.org_name || data.company || data.name || 'Vendor');
+        }
+      } catch (e) { setVendorName('Vendor'); }
+    };
     fetchNotifications();
+    fetchVendorName();
   }, []);
 
   const handleBack = () => {
@@ -344,34 +362,24 @@ const calculatePerformanceMetrics = () => {
         }}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
-            <IconButton
-              onClick={handleBack}
-              size="small"
-              sx={{
+          <Box component="img" src={velaanLogo} alt="Velaan Logo" sx={{ height: 50 }} />
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <IconButton 
+              onClick={handleNotificationClick}
+              sx={{ 
                 backgroundColor: 'rgba(255,255,255,0.2)',
                 color: 'white',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
               }}
             >
-              <ArrowBackIcon fontSize="small" />
+              <Badge badgeContent={notificationCount} color="error">
+                <NotificationsIcon />
+              </Badge>
             </IconButton>
-            <Typography variant="h6" fontWeight="bold">
-              Reports
-            </Typography>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 40, height: 40, fontSize: 18, fontWeight: 'bold' }}>
+              {vendorName?.[0] || 'V'}
+            </Avatar>
           </Box>
-          <IconButton 
-            onClick={handleNotificationClick}
-            sx={{ 
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }}
-          >
-            <Badge badgeContent={notificationCount} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
         </Box>
       </Box>
 

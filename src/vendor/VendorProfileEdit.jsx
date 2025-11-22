@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Container, TextField, Typography, Paper, Snackbar, Alert, CircularProgress, MenuItem, IconButton, Badge } from '@mui/material';
+import { Box, Button, Container, TextField, Typography, Paper, Snackbar, Alert, CircularProgress, MenuItem, IconButton, Badge, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import baseurl from '../baseurl/ApiService';
 import VendorFooter from '../vendorfooter';
-import { ArrowBack } from '@mui/icons-material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import velaanLogo from '../assets/velaanLogo.png';
 
 const VendorProfileEdit = () => {
   const [vendor, setVendor] = useState({
@@ -21,6 +21,7 @@ const VendorProfileEdit = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [vendorName, setVendorName] = useState('Vendor');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
 
@@ -53,6 +54,8 @@ const VendorProfileEdit = () => {
           pincode: v.pincode || '',
           status: v.status || ''
         });
+        const apiName = v.full_name || v.org_name || v.company || v.name || v.vendor_name || 'Vendor';
+        setVendorName(apiName);
         setLoading(false);
       })
       .catch(() => {
@@ -136,34 +139,24 @@ const VendorProfileEdit = () => {
         }}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
+          <img src={velaanLogo} alt="Velaan Logo" style={{ height: '50px' }} />
+          <Box display="flex" alignItems="center" gap={1.5}>
             <IconButton
-              onClick={handleBack}
-              size="small"
+              onClick={() => navigate('/vendor-notifications')}
               sx={{
                 backgroundColor: 'rgba(255,255,255,0.2)',
                 color: 'white',
                 '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
               }}
             >
-              <ArrowBack fontSize="small" />
+              <Badge badgeContent={notificationCount} color="error">
+                <NotificationsIcon />
+              </Badge>
             </IconButton>
-            <Typography variant="h6" fontWeight="bold">
-              Edit Organization Details
-            </Typography>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', fontWeight: 'bold', width: 40, height: 40 }}>
+              {vendorName?.[0] || 'V'}
+            </Avatar>
           </Box>
-          <IconButton
-            onClick={() => navigate('/vendor-notifications')}
-            sx={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }}
-          >
-            <Badge badgeContent={notificationCount} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
         </Box>
       </Box>
 

@@ -79,15 +79,17 @@ const VendorFooter = () => {
         }}
         sx={{ 
           background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-          minHeight: '64px',
+          minHeight: '70px',
           borderRadius: '24px 24px 0 0',
           paddingTop: '8px',
+          paddingBottom: '8px',
           '& .MuiBottomNavigationAction-root': {
             minWidth: 'auto',
-            padding: isVerySmall ? '4px 2px' : isMobile ? '6px 4px' : '8px 12px',
+            padding: isVerySmall ? '8px 4px' : isMobile ? '10px 8px' : '12px 12px',
             color: '#64748b',
             transition: 'all 0.3s ease',
-            borderRadius: '12px',
+            borderRadius: '16px',
+            margin: '0 2px',
             '& .MuiBottomNavigationAction-label': {
               fontSize: isVerySmall ? '0.7rem' : isMobile ? '0.8rem' : '0.85rem',
               lineHeight: 1.2,
@@ -96,21 +98,29 @@ const VendorFooter = () => {
               textOverflow: 'clip',
               maxWidth: 'none',
               textAlign: 'center',
+              color: '#64748b',
               fontWeight: 500,
               marginTop: '4px'
             },
             '& .MuiSvgIcon-root': {
-              fontSize: isVerySmall ? '1.2rem' : isMobile ? '1.3rem' : '1.6rem'
-            },
-            '&.Mui-selected': {
+              fontSize: isVerySmall ? '1.2rem' : isMobile ? '1.3rem' : '1.6rem',
+              color: '#64748b',
+              marginBottom: '2px'
+            }
+          },
+          '& .MuiBottomNavigationAction-root.Mui-selected': {
+            color: '#16a34a',
+            backgroundColor: '#dcfce7',
+            paddingTop: isVerySmall ? '8px' : isMobile ? '10px' : '12px',
+            paddingBottom: isVerySmall ? '8px' : isMobile ? '10px' : '12px',
+            '& .MuiBottomNavigationAction-label': {
               color: '#16a34a',
-              backgroundColor: '#dcfce7',
-              '& .MuiBottomNavigationAction-label': {
-                fontWeight: 600
-              },
-              '& .MuiSvgIcon-root': {
-                transform: 'scale(1.1)'
-              }
+              fontWeight: 600
+            },
+            '& .MuiSvgIcon-root': {
+              color: '#16a34a',
+              transform: 'scale(1.1)',
+              marginBottom: '2px'
             }
           }
         }}

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Avatar, Badge, Box, Button, Card, CardContent, Container, Divider, Grid, Typography, BottomNavigation, BottomNavigationAction, Paper, CircularProgress, Alert, IconButton } from '@mui/material';
-import { Notifications, Dashboard, Assignment, Person, ListAlt, ArrowBack, LocalShipping, CheckCircle, Schedule, TrendingUp } from '@mui/icons-material';
+import { Notifications, Dashboard, Assignment, Person, ListAlt, LocalShipping, CheckCircle, Schedule, TrendingUp } from '@mui/icons-material';
 import DriverFooter from '../driverfooter';
 import baseurl from '../baseurl/ApiService';
 import DriverNotifications from './DriverNotifications';
+import velaanLogo from '../assets/velaanLogo.png';
 
 function formatAddress(task) {
   // For procurement pickups, show vendor address
@@ -360,32 +361,24 @@ export default function DriverDashboard() {
         }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Box display="flex" alignItems="center" gap={2}>
-            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 48, height: 48, fontSize: 20, fontWeight: 'bold' }} src={driverInfo.profileImage || undefined}>
+          <img src={velaanLogo} alt="Velaan Logo" style={{ height: '50px' }} />
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <IconButton 
+              sx={{ 
+                backgroundColor: 'rgba(255,255,255,0.2)', 
+                color: 'white', 
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }} 
+              onClick={handlenotification}
+            >
+              <Badge color="error" badgeContent={notificationCount}>
+                <Notifications sx={{ fontSize: 26 }} />
+              </Badge>
+            </IconButton>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', fontWeight: 'bold', width: 40, height: 40 }} src={driverInfo.profileImage || undefined}>
               {!driverInfo.profileImage && driverInfo.initials}
             </Avatar>
-            <Box>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: 13 }}>
-                Welcome back
-              </Typography>
-              <Typography variant="h6" fontWeight="bold">
-                {driverInfo.name}
-              </Typography>
-            </Box>
           </Box>
-
-          <IconButton 
-            sx={{ 
-              backgroundColor: 'rgba(255,255,255,0.2)', 
-              color: 'white', 
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }} 
-            onClick={handlenotification}
-          >
-            <Badge color="error" badgeContent={notificationCount}>
-              <Notifications sx={{ fontSize: 26 }} />
-            </Badge>
-          </IconButton>
         </Box>
       </Box>
 

@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import VendorFooter from '../vendorfooter';
 import { useAuth } from '../App';
 import baseurl from '../baseurl/ApiService';
+import velaanLogo from '../assets/velaanLogo.png';
 
 const VProfile = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -134,7 +135,7 @@ const VProfile = () => {
         }}
       >
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box display="flex" alignItems="center" gap={2}>
+          <Box display="flex" alignItems="center" gap={1}>
             <IconButton
               onClick={handleBack}
               size="small"
@@ -146,22 +147,25 @@ const VProfile = () => {
             >
               <ArrowBack fontSize="small" />
             </IconButton>
-            <Typography variant="h6" fontWeight="bold">
-              Account Settings
-            </Typography>
+            <Box component="img" src={velaanLogo} alt="Velaan Logo" sx={{ height: 50 }} />
           </Box>
-          <IconButton
-            onClick={() => navigate('/vendor-notifications')}
-            sx={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }}
-          >
-            <Badge badgeContent={notificationCount} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <IconButton
+              onClick={() => navigate('/vendor-notifications')}
+              sx={{
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }}
+            >
+              <Badge badgeContent={notificationCount} color="error">
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 40, height: 40, fontSize: 18, fontWeight: 'bold' }}>
+              {vendorInfo.contact_person ? vendorInfo.contact_person.charAt(0).toUpperCase() : 'V'}
+            </Avatar>
+          </Box>
         </Box>
       </Box>
 

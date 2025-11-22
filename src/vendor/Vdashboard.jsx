@@ -24,6 +24,7 @@ import VendorFooter from '../vendorfooter';
 import dayjs from 'dayjs';
 import baseurl from '../baseurl/ApiService';
 import VendorNotifications from './VendorNotifications';
+import velaanLogo from '../assets/velaanLogo.png';
 
 const VDashboard = () => {
   const [products, setProducts] = useState([]);
@@ -298,32 +299,25 @@ const VDashboard = () => {
         }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Box display="flex" alignItems="center" gap={2}>
-            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 48, height: 48, fontSize: 20, fontWeight: 'bold' }}>
+          <Box component="img" src={velaanLogo} alt="Velaan Logo" sx={{ height: 50 }} />
+
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <IconButton 
+              sx={{ 
+                backgroundColor: 'rgba(255,255,255,0.2)', 
+                color: 'white', 
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
+              }} 
+              onClick={handlenotification}
+            >
+              <Badge color="error" badgeContent={notificationCount}>
+                <NotificationsIcon sx={{ fontSize: 26 }} />
+              </Badge>
+            </IconButton>
+            <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.3)', width: 40, height: 40, fontSize: 18, fontWeight: 'bold' }}>
               {vendorName?.[0] || 'V'}
             </Avatar>
-            <Box>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: 13 }}>
-                Welcome back
-              </Typography>
-              <Typography variant="h6" fontWeight="bold">
-                {vendorName}
-              </Typography>
-            </Box>
           </Box>
-
-          <IconButton 
-            sx={{ 
-              backgroundColor: 'rgba(255,255,255,0.2)', 
-              color: 'white', 
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.3)' }
-            }} 
-            onClick={handlenotification}
-          >
-            <Badge color="error" badgeContent={notificationCount}>
-              <NotificationsIcon sx={{ fontSize: 26 }} />
-            </Badge>
-          </IconButton>
         </Box>
       </Box>
 

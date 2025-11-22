@@ -10,9 +10,10 @@ import { useCart } from './context/CartContext';
 import { useState, useEffect } from 'react';
 import baseurl from './baseurl/ApiService';
 import { useAuth } from './App';
+import velaanLogo from './assets/velaanLogo.png';
 
 function Header({
-  showBackArrow = true,
+  showBackArrow = false,
   label = '',
   showNotifications = true,
   showCart = true,
@@ -125,10 +126,7 @@ function Header({
 
   // Get the display label
   const getDisplayLabel = () => {
-    if (!disableInstituteName && instituteName) {
-      return instituteName;
-    }
-    return label; // Default label if no institute name or disabled
+    return 'Velaanmart';
   };
 
   const markNotificationsAsRead = async () => {
@@ -233,7 +231,7 @@ function Header({
         alignItems: 'center',
       }}
     >
-      {/* Left: Back Arrow, Avatar, Label */}
+      {/* Left: Back Arrow, Logo */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {showBackArrow && (
           <IconButton
@@ -242,24 +240,17 @@ function Header({
               backgroundColor: '#FFFFFF4D',
               color: 'white',
               borderRadius: '50%',
-              p: 1,
+              p: 0.5,
             }}
           >
-            <ArrowBackIosNewIcon />
+            <ArrowBackIosNewIcon sx={{ fontSize: '1rem' }} />
           </IconButton>
         )}
-        {showAvatar && (
-          <Avatar src={headerProfileImageUrl || ''}>
-            {getAvatarText()}
-          </Avatar>
-        )}
-        <Typography variant="h6" sx={{ color: 'white' }}>
-          {getDisplayLabel()}
-        </Typography>
+        <Box component="img" src={velaanLogo} alt="Velaan Logo" sx={{ height: 50 }} />
       </Box>
 
-      {/* Right: Notification, Cart, Filter */}
-      <Box sx={{ display: 'flex', gap: 2 }}>
+      {/* Right: Notification, Cart, Avatar */}
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
         {showNotifications && (
           <IconButton
             onClick={() => handleIconClick('notifications')}
@@ -267,11 +258,11 @@ function Header({
               backgroundColor: '#FFFFFF4D',
               color: 'white',
               borderRadius: '50%',
-              p: 1,
+              p: 0.5,
             }}
           >
             <Badge badgeContent={notificationCount} color="error">
-              <NotificationsIcon />
+              <NotificationsIcon sx={{ fontSize: '1rem' }} />
             </Badge>
           </IconButton>
         )}
@@ -282,11 +273,11 @@ function Header({
               backgroundColor: '#FFFFFF4D',
               color: 'white',
               borderRadius: '50%',
-              p: 1,
+              p: 0.5,
             }}
           >
             <Badge badgeContent={cartCount} color="error">
-              <ShoppingCartIcon />
+              <ShoppingCartIcon sx={{ fontSize: '1rem' }} />
             </Badge>
           </IconButton>
         )}
@@ -297,11 +288,16 @@ function Header({
               backgroundColor: '#FFFFFF4D',
               color: 'white',
               borderRadius: '50%',
-              p: 1,
+              p: 0.5,
             }}
           >
-            <FilterListIcon />
+            <FilterListIcon sx={{ fontSize: '1rem' }} />
           </IconButton>
+        )}
+        {showAvatar && (
+          <Avatar src={headerProfileImageUrl || ''}>
+            {getAvatarText()}
+          </Avatar>
         )}
       </Box>
     </Box>
